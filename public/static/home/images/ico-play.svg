@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="33px" height="33px" viewBox="0 0 33 33" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>bofang</title>
+    <defs>
+        <filter id="filter-1">
+            <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 1.000000 0 0 0 0 1.000000 0 0 0 0 1.000000 0 0 0 1.000000 0"></feColorMatrix>
+        </filter>
+        <polygon id="path-2" points="0 0 33 0 33 33 0 33"></polygon>
+    </defs>
+    <g id="栏目页" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="关于我们" transform="translate(-281.000000, -545.000000)">
+            <g id="bofang" transform="translate(260.000000, 532.000000)" filter="url(#filter-1)">
+                <g transform="translate(21.000000, 13.000000)">
+                    <mask id="mask-3" fill="white">
+                        <use xlink:href="#path-2"></use>
+                    </mask>
+                    <g id="Clip-2"></g>
+                    <path d="M16.5021202,0 C7.40498778,0 0,7.40095431 0,16.5021202 C0.00403347123,25.5990457 7.40498778,33 16.5021202,33 C25.5990457,33 33,25.5990457 33,16.5021202 C33,7.40498778 25.5990457,0 16.5021202,0 Z M23.6588943,17.453554 L13.3209007,23.4231431 C12.5886188,23.8451062 11.6744171,23.3154804 11.6744171,22.4715542 L11.6744171,10.532531 C11.6744171,9.68855303 12.5886188,9.15913407 13.3209007,9.58109722 L23.6588943,15.5505312 C24.3911245,15.9724944 24.3911245,17.0315391 23.6588943,17.453554 Z" id="Fill-1" fill="#000000" mask="url(#mask-3)"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

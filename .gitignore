@@ -1,0 +1,19 @@
+# 实际运行配置与业务数据库不提交；部署时从受控备份同步。
+/app/config/site.php
+/data/demo.sqlite
+
+# 运行时缓存与日志
+/runtime/*
+!/runtime/.gitkeep
+
+# 可由 Composer 还原的依赖
+/vendor/
+
+# 本地 IDE 与系统文件
+/.idea/
+.DS_Store
+._*
+.codex-work-context.md
+composer.phar
+composer-setup.php
+*.log
