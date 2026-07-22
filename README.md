@@ -139,6 +139,20 @@ chmod -R 777 public/upload/
 3. **短信功能** 为占位实现，需自行接入第三方短信平台
 4. **上传目录** 为 `public/upload/`，确保Web服务器有写入权限
 
+## GEO Content OS 自动发布接口
+
+官网提供专用的服务端新闻发布 API，用于接收通过 GEO Content OS 机器质量门禁的官网文章。该接口使用 Bearer Token、内容版本幂等和事务写入，不模拟后台登录。
+
+部署前必须：
+
+1. 备份当前 SQLite 数据库和 `app/config/site.php`；
+2. 执行 `php scripts/migrate-geo-publish.php /绝对路径/官网.sqlite`；
+3. 生成高熵原始令牌，并只把其 SHA-256 配置为 `GEO_PUBLISH_TOKEN_SHA256`；
+4. 确认 `GEO_PUBLISH_TARGET_NAV_ID` 指向启用中的新闻栏目；
+5. 完成本地或预发布验证后再设置 `GEO_PUBLISH_API_ENABLED=1`。
+
+接口契约、配置、测试和回滚方法见 [docs/GEO_PUBLISH_API.md](docs/GEO_PUBLISH_API.md)。
+
 ## 与原版对比
 
 | 对比项 | 原版 | 此版本 |
