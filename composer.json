@@ -19,5 +19,11 @@
     },
     "config": {
         "preferred-install": "dist"
+    },
+    "scripts": {
+        "test:geo-publish": [
+            "php tests/GeoNewsPublisherTest.php",
+            "php tests/GeoPublishHttpTest.php"
+        ]
     }
 }

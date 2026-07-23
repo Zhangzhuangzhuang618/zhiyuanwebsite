@@ -30,6 +30,7 @@ class Database
                     \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
                     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
                 ]);
+                self::$instance->exec('PRAGMA busy_timeout = 5000');
             } else {
                 $dsn = sprintf(
                     '%s:host=%s;port=%s;dbname=%s;charset=%s',

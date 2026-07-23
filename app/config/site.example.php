@@ -22,6 +22,14 @@ return [
         // 在命令行执行 password_hash('你的新密码', PASSWORD_DEFAULT) 后填入结果。
         'password_hash' => '',
     ],
+    'geo_publish_api' => [
+        'enabled' => filter_var(getenv('GEO_PUBLISH_API_ENABLED') ?: '0', FILTER_VALIDATE_BOOLEAN),
+        // 仅配置令牌 SHA-256；原始令牌只保存在 GEO Content OS 的加密平台账号凭证中。
+        'token_sha256' => getenv('GEO_PUBLISH_TOKEN_SHA256') ?: '',
+        'max_body_bytes' => 1024 * 1024,
+        'target_nav_id' => (int)(getenv('GEO_PUBLISH_TARGET_NAV_ID') ?: 11),
+        'site_url' => 'https://www.zhiyuanbj.cn',
+    ],
     'database' => [
         'type' => 'sqlite',
         'hostname' => '',

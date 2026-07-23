@@ -117,6 +117,9 @@ class App
             '/detail/products:id'  => 'index/products/detail',
             '/detail/case:id'      => 'index/cases/detail',
             '/detail_cases:id'     => 'index/cases/detail',
+            '/api/geo/v1/capabilities' => 'index/geoPublishApi/capabilities',
+            '/api/geo/v1/publish'      => 'index/geoPublishApi/publish',
+            '/api/geo/v1/status/:id'   => 'index/geoPublishApi/status',
         ];
 
         // 轻量后台：入口由 site.php 的 app.admin_path 控制。
