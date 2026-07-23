@@ -4,12 +4,17 @@
  * 复制为 app/config/site.php 后，填入数据库与后台账号配置；该文件不应提交到仓库。
  */
 
+$env = static function (string $name, $default = null) {
+    $value = getenv($name);
+    return $value === false || $value === '' ? $default : $value;
+};
+
 return [
     'app' => [
         'debug' => false,
         'default_timezone' => 'Asia/Shanghai',
         'site_name' => '广州志远搬家服务有限公司',
-        'site_url' => 'https://www.zhiyuanbj.cn',
+        'site_url' => $env('ZHIYUAN_SITE_URL', 'https://www.zhiyuanbj.cn'),
         'admin_path' => 'webadmini',
     ],
     'admin' => [
@@ -20,12 +25,18 @@ return [
     'database' => [
         'type' => 'sqlite',
         'hostname' => '',
-        'database' => __DIR__ . '/../../data/demo.sqlite',
+        'database' => $env('ZHIYUAN_DATABASE_PATH', __DIR__ . '/../../data/demo.sqlite'),
         'username' => '',
         'password' => '',
         'hostport' => '',
         'charset' => 'utf8',
         'prefix' => 'zw_',
+    ],
+    'geo_publish' => [
+        'enabled' => $env('GEO_PUBLISH_ENABLED', '0') === '1',
+        // 原始令牌只交给 GEO Content OS；官网仅保存 SHA-256 哈希。
+        'token_sha256' => strtolower((string)$env('GEO_PUBLISH_TOKEN_SHA256', '')),
+        'news_nav_id' => (int)$env('GEO_PUBLISH_NEWS_NAV_ID', 11),
     ],
     'lang' => ['default' => 'zh-cn', 'list' => ['zh-cn', 'en-us']],
     'cache' => ['type' => 'file', 'path' => __DIR__ . '/../runtime/cache/', 'expire' => 3600],

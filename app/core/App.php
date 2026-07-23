@@ -108,6 +108,10 @@ class App
             '/sitemap.xml'         => 'index/sitemap/index',
             '/PageSearch'          => 'index/search/productSearch',
             '/GetList'             => 'index/products/productSearch',
+            // GEO Content OS 专用新闻发布 API。
+            '/api/geo/v1/capabilities' => 'index/geoPublish/capabilities',
+            '/api/geo/v1/publish'      => 'index/geoPublish/publish',
+            '/api/geo/v1/status/:id'   => 'index/geoPublish/status',
             // 详情页路由 (URL格式: /detail/news123)
             '/detail/news:id'      => 'index/news/detail',
             '/detail/products:id'  => 'index/products/detail',
