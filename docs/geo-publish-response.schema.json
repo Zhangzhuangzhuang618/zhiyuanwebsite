@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.zhiyuanbj.cn/schemas/geo-publish-response-1.json",
+  "title": "Zhiyuan GEO news publish response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["external_id", "status", "url", "published_at"],
+  "properties": {
+    "external_id": { "type": "string", "minLength": 1, "maxLength": 240 },
+    "status": { "const": "published" },
+    "url": { "type": "string", "format": "uri" },
+    "published_at": { "type": "string", "format": "date-time" }
+  }
+}
