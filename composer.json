@@ -14,9 +14,6 @@
             "app\\": "app/"
         }
     },
-    "scripts": {
-        "test:geo-publish": "php tests/geo_publish_api_test.php"
-    },
     "config": {
         "preferred-install": "dist"
     },

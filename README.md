@@ -71,24 +71,6 @@ cd zhiyuan_guanwang
 composer install
 ```
 
-### GEO Content OS 新闻发布 API
-
-官网提供 `/api/geo/v1` 专用接口，将机器质检通过的官网文章直接写入“新闻资讯”。接口使用 Bearer Token，不使用后台账号或浏览器模拟登录。
-
-```bash
-export GEO_PUBLISH_ENABLED=1
-export GEO_PUBLISH_TOKEN_SHA256="$(printf '%s' '请替换为随机长令牌' | shasum -a 256 | awk '{print $1}')"
-export GEO_PUBLISH_NEWS_NAV_ID=11
-```
-
-可用接口：
-
-- `GET /api/geo/v1/capabilities`
-- `POST /api/geo/v1/publish`
-- `GET /api/geo/v1/status/{article_id}`
-
-发布请求必须同时携带 `Authorization: Bearer ...` 和 `Idempotency-Key`。相同幂等键与 `content_version_id` 的重试返回同一篇文章；请求内容发生变化时返回 409，不会重复写入。
-
 ### 3. 配置数据库
 
 编辑 `app/config/site.php`，修改数据库连接信息：
