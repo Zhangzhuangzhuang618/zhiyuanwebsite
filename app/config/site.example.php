@@ -25,6 +25,12 @@ return [
         'target_nav_id' => (int)(getenv('GEO_PUBLISH_TARGET_NAV_ID') ?: 11),
         'site_url' => 'https://www.zhiyuanbj.cn',
     ],
+    // 百度普通收录 API。完整接口地址由百度搜索资源平台生成，含 Token，必须仅保存在服务器环境变量中。
+    'baidu_push' => [
+        'enabled' => filter_var(getenv('BAIDU_PUSH_ENABLED') ?: '0', FILTER_VALIDATE_BOOLEAN),
+        'api_url' => getenv('BAIDU_PUSH_API_URL') ?: '',
+        'timeout' => 5,
+    ],
     'database' => [
         'type' => 'sqlite',
         'hostname' => '',

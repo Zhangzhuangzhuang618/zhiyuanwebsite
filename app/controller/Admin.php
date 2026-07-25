@@ -2,6 +2,7 @@
 namespace app\controller;
 
 use app\model\Database;
+use app\service\BaiduUrlPush;
 
 /**
  * 最小内容后台：基于当前 SQLite 表结构管理留言、新闻、案例、站点配置和上传文件。
@@ -211,6 +212,9 @@ class Admin extends BaseController
         $title = trim((string)($_POST['title'] ?? ''));
         if ($title === '') $this->fail('标题不能为空。', $back);
         $id = (int)($_POST['id'] ?? 0); $now = time();
+        $existing = $id ? $this->find($table, $id) : null;
+        $isNew = !$id;
+        $wasPublished = (int)($existing['status'] ?? 0) === 1;
         $uploadedImage = $this->storeImageUpload('cover_image', $back);
         $data = [
             'title' => $title, 'nav_id' => (int)($_POST['nav_id'] ?? 0), 'sketch' => trim((string)($_POST['sketch'] ?? '')),
@@ -226,8 +230,16 @@ class Admin extends BaseController
             $data['id'] = (int)$this->pdo->query('SELECT COALESCE(MAX(id), 0) + 1 FROM ' . $this->table($table))->fetchColumn();
             $data['create_time'] = $now; $data['delete_time'] = null; $data['browse'] = 0; $data['lang'] = 'zh-cn';
             $this->insert($table, $data);
+            $id = (int)$data['id'];
         }
-        $this->clearContentCache(); $this->setFlash('内容已保存。'); $this->redirectTo($back);
+        $this->clearContentCache();
+        $message = '内容已保存。';
+        if ((int)$data['status'] === 1 && ($isNew || !$wasPublished)) {
+            $path = $kind === 'article' ? '/detail/news' . $id . '.html' : '/detail_cases' . $id . '.html';
+            $result = (new BaiduUrlPush($this->config['baidu_push'] ?? []))->submit($this->siteUrl($path));
+            if ($result['attempted']) $message .= $result['success'] ? ' 百度推送成功。' : ' 百度推送未成功，内容已正常保存。';
+        }
+        $this->setFlash($message); $this->redirectTo($back);
     }
 
     private function contentDelete($kind)
