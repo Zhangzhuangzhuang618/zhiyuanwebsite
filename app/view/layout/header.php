@@ -53,6 +53,8 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="baidu-site-verification" content="codeva-HOchAYJNNQ" />
+    <meta name="sogou_site_verification" content="utXUw6H6U2" />
     <title><?= htmlspecialchars($seoTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <meta name="keywords" content="<?= htmlspecialchars($page_keywords ?? '广州搬家,同城搬家,跨市搬家,企业搬迁,搬家服务', ENT_QUOTES, 'UTF-8') ?>">
     <meta name="description" content="<?= htmlspecialchars($seoDescription, ENT_QUOTES, 'UTF-8') ?>">
