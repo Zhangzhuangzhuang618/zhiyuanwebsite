@@ -391,6 +391,11 @@ footer{background:#1f1f1f;color:#f1f1f1}
 	color: #999;
 }
 
+.news-box .news-list .news-right-text-full{
+	width: 100%;
+	float: none;
+}
+
 .form-box .form-nav .type-nav{
 	width: 100px;
 	height: 100px;
