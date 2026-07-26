@@ -6,25 +6,7 @@ $(function() {
         freeMode: true,
     });
 	
-	var winTop = $('.suspension').offset().top + 350;
-
-	$(window).scroll(function() {
-		var totalheight = $(window).height() + $(window).scrollTop();
-    	var documentheight = parseFloat($(document).height());
-		// console.log("文档高度:"+documentheight)
-		// console.log("滚动:"+$(window).scrollTop())
-		if($(window).scrollTop() >= winTop && documentheight - totalheight >= 600 && documentheight > 3200){
-			$('.suspension').addClass('fixed').removeClass('abso')
-		}else if( documentheight - totalheight <= 600 && documentheight > 3200){
-			$('.suspension').removeClass('fixed').addClass('abso')
-		}else if( documentheight - totalheight >= 600){
-			$('.suspension').removeClass('abso fixed')
-		}else{
-			$('.suspension').removeClass('fixed abso')
-		}
-	
-	})
-	
+	// 右侧资讯栏不再吸顶。原有 fixed/abso 状态在部分滚动高度下会脱离内容区并覆盖正文。
 
     $('.case-list').each(function() {
         var len = $(this).find('.swiper-slide').length;
