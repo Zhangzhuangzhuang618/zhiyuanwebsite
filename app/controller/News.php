@@ -12,9 +12,10 @@ class News extends BaseController
         $navModel = new CmsNav();
         $articleModel = new CmsArticle();
 
-        $isAggregate = $id === null;
         $rootNav = $navModel->findWhere(['url_model' => 'news', 'pid' => 0])
             ?: $navModel->findWhere(['url_model' => 'news']);
+        // /news/7.html is the historical root-news URL and must show every category.
+        $isAggregate = $id === null || ($rootNav && $id === (int) $rootNav['id']);
         $currentNav = $isAggregate ? $rootNav : $navModel->find($id);
         if (!$currentNav) {
             $currentNav = $rootNav;
