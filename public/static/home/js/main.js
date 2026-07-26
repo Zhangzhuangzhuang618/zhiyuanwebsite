@@ -53,17 +53,33 @@ $(function() {
     });
 
     function nav() {
-        var $mark = $(".nav .active");
-        var $left = $mark.position().left + 14;
-        var $thisWidth = $mark.find('a').width();
-        $(".line").css({ 'left': $left, 'width': $thisWidth });
-        $(".nav li").hover(function() {
-            var $width = $(this).find('a').width();
-            $(".line").stop();
-            $(".line").animate({ left: $(this).find('a').position().left + 'px', width: $width }, 250);
+        var $navLine = $(".nav-line");
+        var $line = $navLine.find(".line");
+        var $mark = $navLine.find(".nav > .nav-item.active");
+
+        if (!$mark.length) return;
+
+        function moveLine($item, duration) {
+            var $link = $item.children('.nav-parent');
+            var left = $link.offset().left - $navLine.offset().left;
+            var properties = { left: left, width: $link.outerWidth() };
+
+            $line.stop();
+            if (duration) {
+                $line.animate(properties, duration);
+            } else {
+                $line.css(properties);
+            }
+        }
+
+        moveLine($mark, 0);
+        $navLine.find(".nav > .nav-item").hover(function() {
+            moveLine($(this), 250);
         }, function() {
-            $(".line").stop();
-            $(".line").animate({ left: $mark.position().left + 14 + 'px', width: $thisWidth }, 550);
+            moveLine($mark, 250);
+        });
+        $(window).on('resize', function() {
+            moveLine($mark, 0);
         });
     };
     nav();
