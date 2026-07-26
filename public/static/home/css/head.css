@@ -1366,8 +1366,24 @@ li {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18)
 }
 
+.close-popup:before,
+.close-popup:after {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: 9px;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: #fff;
+}
+
 .close-popup:before {
-    content: '×'
+    transform: rotate(45deg);
+}
+
+.close-popup:after {
+    transform: rotate(-45deg);
 }
 
 #Popup .container {
