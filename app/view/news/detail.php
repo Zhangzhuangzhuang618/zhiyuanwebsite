@@ -1,6 +1,6 @@
 <?php include VIEW_PATH . 'layout/header.php'; ?>
-<link rel="stylesheet" href="/static/home/css/news.css">
-<div class="page-banner"><img src="<?= $banner ?>" class="w100 block" alt="新闻资讯"></div>
+<link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/news.css'), ENT_QUOTES, 'UTF-8') ?>">
+<div class="page-banner"><img src="<?= htmlspecialchars($assetUrl($banner), ENT_QUOTES, 'UTF-8') ?>" class="w100 block" alt="新闻资讯"></div>
 <nav class="column-menu center boxsh pd20 mt25 wow fadeInUp" data-wow-delay="0.1s" aria-label="资讯分类">
     <div class="border-bottom"><div class="column-menu-list clearfix"><p><a>资讯类型：</a></p><p class="clearfix column-menu-list-nav"><?php foreach ($classify as $item): ?><a href="<?= $item['href'] ?: '/news/' . $item['id'] . '.html' ?>" target="<?= $item['target'] ?: '_self' ?>"><?= $item['title'] ?></a><?php endforeach; ?></p></div></div>
 </nav>
@@ -24,5 +24,5 @@
     </div>
     <?php include VIEW_PATH . 'layout/news_right.php'; ?>
 </div>
-<script src="/static/home/js/news.js"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/news.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 <?php include VIEW_PATH . 'layout/footer.php'; ?>

@@ -1,8 +1,8 @@
 <?php include VIEW_PATH . 'layout/header.php'; ?>
-<link rel="stylesheet" href="/static/home/css/about.css">
+<link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/about.css'), ENT_QUOTES, 'UTF-8') ?>">
 
 <div class="page-banner">
-    <img src="/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg" class="w100 block" alt="">
+    <img src="<?= htmlspecialchars($assetUrl('/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg'), ENT_QUOTES, 'UTF-8') ?>" class="w100 block" alt="">
 </div>
 
 <div>

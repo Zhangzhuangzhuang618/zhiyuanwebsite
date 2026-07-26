@@ -3,6 +3,19 @@
 $seoTitle = $page_title ?? '广州志远搬家服务有限公司';
 $seoDescription = $page_description ?? '广州志远搬家服务有限公司提供同城搬家、跨市搬家、企业搬迁及相关搬运服务，具体服务方案以实际沟通确认结果为准。';
 $ogImage = !empty($page_image) ? $page_image : ($site['logo'] ?? '');
+$assetUrl = static function (string $path): string {
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+
+    $pathOnly = parse_url($path, PHP_URL_PATH) ?: $path;
+    $file = PUBLIC_PATH . '/' . ltrim($pathOnly, '/');
+    if (!is_file($file)) {
+        return $path;
+    }
+
+    return $path . (strpos($path, '?') === false ? '?v=' : '&v=') . filemtime($file);
+};
 $navById = [];
 foreach ($nav as $navItem) {
     $navById[(int) $navItem['id']] = $navItem;
@@ -68,16 +81,16 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
     <?php foreach ($structured_data as $schema): ?>
     <script type="application/ld+json"><?= json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
     <?php endforeach; ?>
-    <link rel="shortcut icon" type="image/x-icon" href="/upload/20250316/993a52a682b5711b1a4c03e7ce22ea03.png" media="screen">
-    <link rel="stylesheet" href="/static/home/css/swiper.css">
-    <link rel="stylesheet" href="/static/home/css/animate.min.css">
-    <link rel="stylesheet" href="/static/home/css/mediaelementplayer.css">
-    <link rel="stylesheet" href="/static/home/css/global.css">
-    <link rel="stylesheet" href="/static/home/css/head.css">
-    <link rel="stylesheet" href="/static/home/css/header.css">
-    <link rel="stylesheet" href="/static/home/css/footer.css">
-    <link rel="stylesheet" href="/static/home/css/media.css">
-    <script src="/static/home/js/jquery.min.js"></script>
+    <link rel="shortcut icon" type="image/x-icon" href="<?= htmlspecialchars($assetUrl('/upload/20250316/993a52a682b5711b1a4c03e7ce22ea03.png'), ENT_QUOTES, 'UTF-8') ?>" media="screen">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/swiper.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/animate.min.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/mediaelementplayer.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/global.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/head.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/header.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/footer.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/media.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <script src="<?= htmlspecialchars($assetUrl('/static/home/js/jquery.min.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 </head>
 <body>
 <!-- 头部开始 -->
@@ -112,7 +125,7 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
     <div class="header-nav clearfix">
         <div class="center">
             <div class="header-left">
-                <img src="<?= $site['logo'] ?: '/upload/20250316/343c6ff6bcb0d1dd7a9a4989741d35ea.png' ?>" alt="<?= htmlspecialchars($site['name'], ENT_QUOTES, 'UTF-8') ?>">
+                <img src="<?= htmlspecialchars($assetUrl($site['logo'] ?: '/upload/20250316/343c6ff6bcb0d1dd7a9a4989741d35ea.png'), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($site['name'], ENT_QUOTES, 'UTF-8') ?>">
             </div>
             <!--APP导航 -->
             <span class="menuBtn"></span>

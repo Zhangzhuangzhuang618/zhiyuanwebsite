@@ -113,7 +113,7 @@ class Index extends BaseController
         $viewData = [
             'page'      => $page ?? [],
             'classify'  => $children,
-            'banner'    => $navModel->find($parentId)['image'] ?? '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
+            'banner'    => ($navModel->find($parentId)['image'] ?? '') ?: '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
             'p_active'  => 4,
             'page_title'      => $page['seo_title'] ?: $this->seoTitle($page['title'] ?? '关于志远'),
             'page_keywords'   => $page['seo_keyword'] ?? '',

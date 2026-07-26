@@ -26,7 +26,7 @@ class Products extends BaseController
 
         $this->render('products/index', array_merge($this->getProductTemplateData($id), [
             'currentNav' => $currentNav ?? [],
-            'banner'     => $currentNav['image'] ?? '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
+            'banner'     => ($currentNav['image'] ?? '') ?: '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
             'p_active'   => 1,
             'canonical_url' => $this->siteUrl('/products/' . ($currentNav['id'] ?? $id) . '.html'),
             'page_title' => $currentNav['seo_title'] ?: $this->seoTitle($currentNav['title'] ?? '搬家服务'),
@@ -54,7 +54,7 @@ class Products extends BaseController
 
         $this->render('products/detail', array_merge($this->getProductTemplateData($detail['nav_id'] ?? 0), [
             'detail'     => $detail,
-            'banner'     => $currentNav['image'] ?? '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
+            'banner'     => ($currentNav['image'] ?? '') ?: '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
             'p_active'   => 1,
             'canonical_url' => $this->siteUrl('/detail/products' . $id . '.html'),
             'page_title'      => $detail['seo_title'] ?: $this->seoTitle($detail['title']),

@@ -1,5 +1,5 @@
 <?php include VIEW_PATH . 'layout/header.php'; ?>
-<link rel="stylesheet" href="/static/home/css/list.css">
+<link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/list.css'), ENT_QUOTES, 'UTF-8') ?>">
 
 <div class="center clearfix mt20">
     <div class="breadcrumb"><a href="/">首页</a> &gt; <span><?= $page['title'] ?? '页面' ?></span></div>

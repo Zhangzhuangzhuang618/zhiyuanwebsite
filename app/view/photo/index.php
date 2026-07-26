@@ -1,5 +1,5 @@
 <?php include VIEW_PATH . 'layout/header.php'; ?>
-<link rel="stylesheet" href="/static/home/css/list.css">
+<link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/list.css'), ENT_QUOTES, 'UTF-8') ?>">
 
 <div class="center">
     <div class="breadcrumb mt20"><a href="/">首页</a> &gt; <span><?= $currentNav['title'] ?? '相册展示' ?></span></div>

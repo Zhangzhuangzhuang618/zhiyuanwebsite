@@ -40,7 +40,7 @@ class News extends BaseController
             'total'      => $data['total'],
             'page'       => $data['page'],
             'totalPage'  => $data['total_page'],
-            'banner'     => $currentNav['image'] ?? '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
+            'banner'     => ($currentNav['image'] ?? '') ?: (($rootNav['image'] ?? '') ?: '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg'),
             'p_active'   => 6,
             'canonical_url' => $isAggregate
                 ? $this->siteUrl('/news.html')
@@ -68,6 +68,7 @@ class News extends BaseController
         $breadcrumb = $navModel->getBreadcrumb($detail['nav_id'] ?? 0);
 
         $currentNav = $navModel->find($detail['nav_id'] ?? 0) ?: [];
+        $parentNav = !empty($currentNav['pid']) ? ($navModel->find((int) $currentNav['pid']) ?: []) : $currentNav;
         $classify = $navModel->select(['pid' => ($currentNav['pid'] ?: $currentNav['id'] ?? 0), 'status' => 1], '*', 'sort ASC');
 
         $this->render('news/detail', array_merge($this->getNewsSidebar(), [
@@ -76,7 +77,7 @@ class News extends BaseController
             'next'       => $prevNext['next'],
             'classify'   => $classify,
             'about_news' => $articleModel->getRelated($detail['nav_id'] ?? 0, $id, 8),
-            'banner'     => $currentNav['image'] ?? '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
+            'banner'     => ($currentNav['image'] ?? '') ?: (($parentNav['image'] ?? '') ?: '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg'),
             'p_active'   => 6,
             'canonical_url' => $this->siteUrl('/detail/news' . $id . '.html'),
             'page_title'      => $detail['seo_title'] ?: $this->seoTitle($detail['title']),

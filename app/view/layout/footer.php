@@ -234,14 +234,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-<script src="/static/home/js/swiper.min.js"></script>
-<script src="/static/home/js/s.js"></script>
-<script src="/static/home/js/jquery.lazyload.js"></script>
-<script src="/static/home/js/wow.js"></script>
-<script src="/static/home/js/main.js"></script>
-<script src="/static/home/js/header.js"></script>
-<script src="/static/home/js/layer.js"></script>
-<script src="/static/home/js/mediaelement-and-player.min.js"></script>
-<script src="/static/home/js/acc_ch.js"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/swiper.min.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/s.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/jquery.lazyload.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/wow.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/main.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/header.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/layer.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/mediaelement-and-player.min.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/acc_ch.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>

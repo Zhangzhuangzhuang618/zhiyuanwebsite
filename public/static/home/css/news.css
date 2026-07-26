@@ -1040,7 +1040,8 @@ footer{background:#1f1f1f;color:#f1f1f1}
 }
 .suspension.fixed{
 	position: fixed;
-	top:-25px;
+	top:20px;
+	right:max(20px, calc((100vw - 1230px) / 2));
 }
 
 .suspension.abso{
@@ -1121,6 +1122,11 @@ footer{background:#1f1f1f;color:#f1f1f1}
 		position: relative;
 		transition: all .4s ease-out;
 		top: 0;
+	}
+	.suspension.fixed {
+		position: relative;
+		top: auto;
+		right: auto;
 	}
 	.news-box .news-list .news-right-text {
 		width: 100%;

@@ -1,6 +1,6 @@
 <?php include VIEW_PATH . 'layout/header.php'; ?>
 
-<link rel="stylesheet" href="/static/home/css/index.css">
+<link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/index.css'), ENT_QUOTES, 'UTF-8') ?>">
 
 <!-- Banner -->
 <section aria-label="首页横幅">
@@ -9,7 +9,7 @@
             <?php if (!empty($banners)): ?>
                 <?php foreach ($banners as $banner): ?>
                 <div class="swiper-slide">
-                    <img src="<?= $banner['image'] ?>" class="w100 block" alt="广州志远搬家服务横幅">
+                    <img src="<?= htmlspecialchars($assetUrl($banner['image']), ENT_QUOTES, 'UTF-8') ?>" class="w100 block" alt="广州志远搬家服务横幅">
                 </div>
                 <?php endforeach; ?>
             <?php else: ?>
@@ -230,6 +230,6 @@
     </div>
 </section>
 
-<script src="/static/home/js/index.js"></script>
+<script src="<?= htmlspecialchars($assetUrl('/static/home/js/index.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 
 <?php include VIEW_PATH . 'layout/footer.php'; ?>

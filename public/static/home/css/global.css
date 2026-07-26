@@ -661,3 +661,7 @@ input.input_focus {
     font-size: 12px;
     color: red;
 }
+.page-banner img,
+.page_banner img {
+	display: block;
+}
