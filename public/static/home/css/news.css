@@ -351,6 +351,46 @@ footer{background:#1f1f1f;color:#f1f1f1}
 	background: #fff;
 }
 
+.form-box .quote-entry{
+	min-height: 260px;
+	padding: 36px 30px 30px;
+	text-align: center;
+	background: linear-gradient(145deg, #fff8f7 0%, #fff 72%);
+}
+
+.quote-entry-kicker{
+	margin-bottom: 8px;
+	font-size: 14px;
+	color: #e53025;
+}
+
+.form-box .quote-entry h2{
+	margin-bottom: 15px;
+	font-size: 24px;
+	line-height: 1.25;
+	color: #333;
+}
+
+.form-box .quote-entry > p:not(.quote-entry-kicker){
+	min-height: 48px;
+	line-height: 1.8;
+	color: #777;
+}
+
+.form-box .quote-entry .pianoBtn{
+	display: block;
+	margin-top: 22px;
+	line-height: 44px;
+	text-decoration: none;
+}
+
+.form-box .quote-entry small{
+	display: block;
+	margin-top: 14px;
+	font-size: 12px;
+	color: #999;
+}
+
 .form-box .form-nav .type-nav{
 	width: 100px;
 	height: 100px;

@@ -1,14 +1,12 @@
 <div class="right">
   <div class="form-box boxsh clearfix fs-14 wow fadeInUp" data-wow-delay="0.1s">
-    <div class="form-container fr"><div class="input-box position-relative"><div class="input-slide show">
-      <form id="form_bj" onsubmit="return false;">
-        <input type="hidden" name="form[]" value="">
-        <div class="area domestic clearfix"><div class="clearfix"><select name="form[]" class="form_select0" id="form_type"><option value="专业同城搬家">专业同城搬家</option><option value="专业跨市搬家">专业跨市搬家</option><option value="专业出国搬家">专业出国搬家</option></select></div><div class="dw_relative"><input type="text" placeholder="请输入起始地址" name="form[]" class="area-1 start_address form_input2" oninput="valueU('.start_address','.error-start-address')"><label class="error-msg error-start-address"></label></div><div class="dw_relative"><input type="text" placeholder="请输入目的地址" name="form[]" class="area-1 end_address form_input3" oninput="valueU('.end_address','.error-end-address')"><label class="error-msg error-end-address"></label></div></div>
-        <div class="e-phone clearfix dw_relative"><input type="text" placeholder="输入号码,报价结果将发送到您的手机" name="form[]" class="form_tel form_input4" oninput="valueU('.tel','.error-tel')"><label class="error-msg error-tel"></label></div>
-        <div class="area clearfix dw_relative code-b"><input type="number" name="form[]" placeholder="请输入验证码" class="form_code area-1 form_input5" oninput="valueU('.form_code','.error-code')"><label class="error-msg error-code"></label><img src="/verify.html" alt="验证码" title="看不清？点击换一张" id="captcha" width="150" class="validateImg"></div>
-        <div><input type="submit" class="pianoBtn" value="30秒获取报价" onclick="for_form_submit()"></div><p class="warning">*为了您的权益，您的隐私将被严格保密</p>
-      </form>
-    </div></div></div>
+    <section class="quote-entry" aria-labelledby="sidebar-quote-title">
+      <p class="quote-entry-kicker">新版参考报价</p>
+      <h2 id="sidebar-quote-title">搬家价格计算器</h2>
+      <p>选择出发地、目的地、车型、距离、物品体积和大件，立即查看参考价格。</p>
+      <button type="button" class="pianoBtn getBaojia">开始价格估算</button>
+      <small>支持半日式搬家与日式精品搬家报价</small>
+    </section>
   </div>
   <div class="kf mt25 boxsh wow fadeInUp" data-wow-delay="0.1s"><a href="tel:02085627757"><img class="lazy" data-original="/static/home/images/kf.jpg" alt="" src="/static/home/images/kf.jpg" style="display: inline;"></a></div>
   <div class="recommend mt25 boxsh wow fadeInUp" data-wow-delay="0.1s"><div class="recommendKs"><div class="title"><h3>搬家常见问题</h3></div><div class="recommend-list"><?php foreach ($CJWT['child_id'] as $item): ?><a href="/faq.html"><?= $item['title'] ?></a><?php endforeach; ?></div></div></div>
