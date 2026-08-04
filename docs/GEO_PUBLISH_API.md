@@ -2,7 +2,7 @@
 
 ## 作用范围
 
-该 API 只新增并立即发布“新闻资讯”文章。它不模拟后台登录，不读取 GEO Content OS 数据库，也不反向同步人工删除。调用方必须先完成内容生成、机器质量检查和自动重写。
+该 API 接收 GEO Content OS 上传的合格文章图片，并新增、立即发布“新闻资讯”文章。它不模拟后台登录，不读取 GEO Content OS 数据库，也不反向同步人工删除。调用方必须先完成内容生成、机器质量检查和自动重写。
 
 Base URL：`/api/geo/v1`。GEO Content OS 平台账号应填写包含该路径前缀的完整 HTTPS 地址，例如 `https://www.zhiyuanbj.cn/api/geo/v1/`。
 
@@ -25,6 +25,7 @@ printf '%s' "$TOKEN" | shasum -a 256
 - 官网只配置摘要 `GEO_PUBLISH_TOKEN_SHA256`。
 - 正式启用前确认 `target_nav_id` 对应 `status=1` 且 `url_model=news` 的栏目。
 - API 必须只通过 HTTPS 暴露，并由反向代理限制请求体和访问频率。
+- PHP 运行用户必须对 `public/upload/` 有写权限；自动配图保存在 `public/upload/geo/`。
 
 ## 数据库迁移
 
@@ -67,8 +68,37 @@ X-Request-Id: <调用链请求ID>
 成功响应：
 
 ```json
-{"publish":true,"get_status":true,"metrics":false}
+{"publish":true,"get_status":true,"media_upload":true,"metrics":false}
 ```
+
+### POST `/media`
+
+发布文章前，调用方把本地 MinIO 中的 JPEG 图片作为原始请求体上传。该端点与文章发布使用同一个
+Bearer Token，单张图片最大 10 MB。
+
+```http
+Content-Type: image/jpeg
+Idempotency-Key: official-site-media:<asset_uuid>
+X-Content-Sha256: <图片二进制的64位小写SHA-256>
+X-Content-Version-Id: <content_version_uuid>
+X-Media-Asset-Id: <media_asset_uuid>
+X-Media-Role: cover|body
+```
+
+首次保存返回 HTTP 201；相同内容重放返回 HTTP 200。文件按内容哈希保存，相同图片不会重复写入：
+
+```json
+{
+  "asset_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "content_hash": "64位小写SHA-256",
+  "content_type": "image/jpeg",
+  "size_bytes": 123456,
+  "url": "https://www.zhiyuanbj.cn/upload/geo/ab/完整哈希.jpg"
+}
+```
+
+服务端重新计算 SHA-256、MIME 和图片结构；伪造类型、损坏文件或哈希不一致会被拒绝。上传成功后，
+图片由官网服务器持久保存，不再依赖 GEO Content OS 所在 Windows 服务器在线。
 
 ### POST `/publish`
 
@@ -111,7 +141,7 @@ X-Request-Id: <调用链请求ID>
 
 ## HTML 安全
 
-仅保留 `p,h2,h3,ul,ol,li,blockquote,strong,em,a,section,aside,figure,figcaption`。非链接标签的属性全部删除；链接只保留有效 HTTP/HTTPS `href` 并补充 `rel="noopener noreferrer"`。脚本、事件处理器、JavaScript URL、iframe 和对象嵌入均拒绝。
+仅保留 `p,h2,h3,ul,ol,li,blockquote,strong,em,a,section,aside,figure,figcaption,img`。链接只保留有效 HTTP/HTTPS `href` 并补充 `rel="noopener noreferrer"`；图片只允许引用当前官网 `/upload/geo/` 下的内容寻址 JPEG，并仅保留 `src`、`alt` 及固定的延迟加载属性。脚本、事件处理器、JavaScript URL、第三方图片、iframe 和对象嵌入均拒绝。正文第一张合格图片同时写入文章封面字段。
 
 ## 错误响应
 
@@ -122,7 +152,7 @@ X-Request-Id: <调用链请求ID>
 }
 ```
 
-主要错误：`AUTH_REQUIRED`、`AUTH_INVALID`、`REQUEST_TOO_LARGE`、`REQUEST_INVALID`、`PAYLOAD_HASH_MISMATCH`、`IDEMPOTENCY_CONFLICT`、`CATEGORY_INVALID`、`ARTICLE_WRITE_FAILED`、`RESOURCE_NOT_FOUND`。
+主要错误：`AUTH_REQUIRED`、`AUTH_INVALID`、`REQUEST_TOO_LARGE`、`REQUEST_INVALID`、`CONTENT_HASH_MISMATCH`、`MEDIA_INVALID`、`MEDIA_WRITE_FAILED`、`PAYLOAD_HASH_MISMATCH`、`IDEMPOTENCY_CONFLICT`、`CATEGORY_INVALID`、`ARTICLE_WRITE_FAILED`、`RESOURCE_NOT_FOUND`。
 
 调用方只应重试网络错误和 HTTP 5xx，并始终复用原幂等键。4xx 是确定性拒绝，不应自动重试。
 

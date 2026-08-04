@@ -35,9 +35,12 @@ $pdo->exec('CREATE TABLE zw_cms_article ('
 $pdo->exec((string)file_get_contents(dirname(__DIR__) . '/database/migrations/001_geo_publish_api.sql'));
 
 $GLOBALS['config'] = ['database' => ['prefix' => 'zw_']];
+$mediaDirectory = sys_get_temp_dir() . '/geo-publish-media-' . bin2hex(random_bytes(8));
+if (!mkdir($mediaDirectory, 0755, true)) throw new RuntimeException('Unable to create media directory.');
 $token = 'test-token-with-enough-entropy';
 $publisher = new GeoNewsPublisher($pdo, [
     'enabled' => true,
+    'media_upload_path' => $mediaDirectory,
     'token_sha256' => hash('sha256', $token),
     'target_nav_id' => 11,
     'site_url' => 'https://example.test',
@@ -47,12 +50,46 @@ expectError(function () use ($publisher): void {
     $publisher->authenticate('Bearer wrong');
 }, 'AUTH_INVALID');
 
+$jpeg = file_get_contents(dirname(__DIR__) . '/public/static/home/images/icon_line.jpg');
+if ($jpeg === false) throw new RuntimeException('Unable to load JPEG fixture.');
+$mediaHash = hash('sha256', $jpeg);
+$media = $publisher->uploadMedia($jpeg, [
+    'asset_id' => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'content_hash' => $mediaHash,
+    'content_type' => 'image/jpeg',
+    'content_version_id' => '11111111-1111-4111-8111-111111111111',
+    'role' => 'cover',
+], 'official-site-media:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+expect($media['created'] === true, 'First media upload must create a file.');
+expect(is_file($mediaDirectory . '/geo/' . substr($mediaHash, 0, 2) . '/' . $mediaHash . '.jpg'), 'Uploaded media is missing.');
+$mediaReplay = $publisher->uploadMedia($jpeg, [
+    'asset_id' => 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'content_hash' => $mediaHash,
+    'content_type' => 'image/jpeg',
+    'content_version_id' => '11111111-1111-4111-8111-111111111111',
+    'role' => 'cover',
+], 'official-site-media:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+expect($mediaReplay['created'] === false, 'Media replay must reuse the content-addressed file.');
+expectError(function () use ($publisher, $jpeg, $mediaHash): void {
+    $publisher->uploadMedia($jpeg . 'corrupt', [
+        'asset_id' => 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+        'content_hash' => $mediaHash,
+        'content_type' => 'image/jpeg',
+        'content_version_id' => '11111111-1111-4111-8111-111111111111',
+        'role' => 'body',
+    ], 'official-site-media:cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+}, 'CONTENT_HASH_MISMATCH');
+$externalImage = $publisher->sanitizeHtml('<p>保留正文。</p><img src="https://attacker.example/image.jpg" alt="外部图片">');
+expect(strpos($externalImage, '<img') === false, 'Third-party images must be removed.');
+$queryImage = $publisher->sanitizeHtml('<p>保留正文。</p><img src="' . $media['response']['url'] . '?token=x" alt="带查询参数图片">');
+expect(strpos($queryImage, '<img') === false, 'Media URLs with query parameters must be removed.');
+
 $payload = [
     'schema_version' => 'zhiyuan-news-payload@1',
     'platform_code' => 'official_site',
     'title' => '广州企业搬迁如何规划人员车辆与物品交接流程',
     'summary' => '从需求确认、现场勘察到物品交接，说明企业搬迁的关键步骤。',
-    'body_html' => '<h2>先确认搬迁范围</h2><p>企业应先整理物品清单和时间要求。</p>',
+    'body_html' => '<figure><img src="' . $media['response']['url'] . '" alt="搬家流程示意图" loading="lazy"></figure><h2>先确认搬迁范围</h2><p>企业应先整理物品清单和时间要求。</p>',
     'seo_keywords' => ['广州企业搬迁', '搬迁流程'],
     'meta_description' => '广州企业搬迁流程说明，涵盖需求确认、现场勘察和物品交接。',
 ];
@@ -66,6 +103,8 @@ expect($first['created'] === true, 'First request must create an article.');
 expect($first['response']['external_id'] === '1', 'Unexpected article id.');
 expect((int)$pdo->query('SELECT COUNT(*) FROM zw_cms_article')->fetchColumn() === 1, 'Article was not inserted.');
 expect((int)$pdo->query('SELECT nav_id FROM zw_cms_article')->fetchColumn() === 11, 'Wrong category.');
+expect($pdo->query('SELECT image FROM zw_cms_article')->fetchColumn() === $media['response']['url'], 'Uploaded cover was not assigned to the article.');
+expect(strpos((string)$pdo->query('SELECT content FROM zw_cms_article')->fetchColumn(), '<img src=') !== false, 'Uploaded image was removed from article HTML.');
 
 $replay = $publisher->publish($request, 'publish-test-1');
 expect($replay['created'] === false, 'Replay must not create another article.');
@@ -98,4 +137,15 @@ expectError(function () use ($publisher): void {
 }, 'RESOURCE_NOT_FOUND');
 
 @unlink($database);
+removeTree($mediaDirectory);
 fwrite(STDOUT, "GeoNewsPublisherTest passed\n");
+
+function removeTree(string $directory): void
+{
+    if (!is_dir($directory)) return;
+    foreach (array_diff(scandir($directory) ?: [], ['.', '..']) as $entry) {
+        $path = $directory . DIRECTORY_SEPARATOR . $entry;
+        if (is_dir($path)) removeTree($path); else @unlink($path);
+    }
+    @rmdir($directory);
+}

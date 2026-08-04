@@ -9,7 +9,8 @@ use app\model\Database;
 $databasePath = getenv('GEO_TEST_DATABASE_PATH') ?: '';
 $tokenHash = getenv('GEO_TEST_TOKEN_SHA256') ?: '';
 $siteUrl = getenv('GEO_TEST_SITE_URL') ?: '';
-if ($databasePath === '' || $tokenHash === '' || $siteUrl === '') {
+$mediaUploadPath = getenv('GEO_TEST_MEDIA_UPLOAD_PATH') ?: '';
+if ($databasePath === '' || $tokenHash === '' || $siteUrl === '' || $mediaUploadPath === '') {
     http_response_code(500);
     echo 'Test server configuration is incomplete.';
     exit;
@@ -30,6 +31,8 @@ $config = [
         'enabled' => true,
         'token_sha256' => $tokenHash,
         'max_body_bytes' => 1024 * 1024,
+        'max_media_bytes' => 10 * 1024 * 1024,
+        'media_upload_path' => $mediaUploadPath,
         'target_nav_id' => 11,
         'site_url' => $siteUrl,
     ],

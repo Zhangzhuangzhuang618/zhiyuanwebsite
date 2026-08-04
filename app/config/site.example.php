@@ -22,6 +22,8 @@ return [
         // 仅配置令牌 SHA-256；原始令牌只保存在 GEO Content OS 的加密平台账号凭证中。
         'token_sha256' => getenv('GEO_PUBLISH_TOKEN_SHA256') ?: '',
         'max_body_bytes' => 1024 * 1024,
+        'max_media_bytes' => 10 * 1024 * 1024,
+        'media_upload_path' => __DIR__ . '/../../public/upload/',
         'target_nav_id' => (int)(getenv('GEO_PUBLISH_TARGET_NAV_ID') ?: 11),
         'site_url' => 'https://www.zhiyuanbj.cn',
     ],

@@ -7,7 +7,7 @@ class GeoNewsPublisher
 {
     private const ALLOWED_TAGS = [
         'p', 'h2', 'h3', 'ul', 'ol', 'li', 'blockquote', 'strong', 'em', 'a',
-        'section', 'aside', 'figure', 'figcaption',
+        'section', 'aside', 'figure', 'figcaption', 'img',
     ];
 
     private $pdo;
@@ -22,6 +22,8 @@ class GeoNewsPublisher
             'enabled' => filter_var(getenv('GEO_PUBLISH_API_ENABLED') ?: '0', FILTER_VALIDATE_BOOLEAN),
             'token_sha256' => getenv('GEO_PUBLISH_TOKEN_SHA256') ?: '',
             'max_body_bytes' => 1024 * 1024,
+            'max_media_bytes' => 10 * 1024 * 1024,
+            'media_upload_path' => defined('UPLOAD_PATH') ? UPLOAD_PATH : '',
             'target_nav_id' => (int)(getenv('GEO_PUBLISH_TARGET_NAV_ID') ?: 11),
             'site_url' => (string)($siteConfig['app']['site_url'] ?? 'https://www.zhiyuanbj.cn'),
         ];
@@ -49,7 +51,93 @@ class GeoNewsPublisher
 
     public function capabilities(): array
     {
-        return ['publish' => true, 'get_status' => true, 'metrics' => false];
+        return ['publish' => true, 'get_status' => true, 'media_upload' => true, 'metrics' => false];
+    }
+
+    public function uploadMedia(string $body, array $metadata, string $idempotencyKey): array
+    {
+        $idempotencyKey = trim($idempotencyKey);
+        if (!preg_match('/^[A-Za-z0-9._:-]{1,128}$/', $idempotencyKey)) {
+            $this->fail('REQUEST_INVALID', 'Idempotency-Key is invalid.', 422);
+        }
+        $required = ['asset_id', 'content_hash', 'content_type', 'content_version_id', 'role'];
+        if (array_diff(array_keys($metadata), $required) || array_diff($required, array_keys($metadata))) {
+            $this->fail('REQUEST_INVALID', 'Media metadata is invalid.', 422);
+        }
+        foreach (['asset_id', 'content_version_id'] as $field) {
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', (string)$metadata[$field])) {
+                $this->fail('REQUEST_INVALID', $field . ' is invalid.', 422);
+            }
+        }
+        $contentHash = strtolower((string)$metadata['content_hash']);
+        if (!preg_match('/^[a-f0-9]{64}$/', $contentHash)) {
+            $this->fail('REQUEST_INVALID', 'Content hash is invalid.', 422);
+        }
+        if ($metadata['content_type'] !== 'image/jpeg' || !in_array($metadata['role'], ['body', 'cover'], true)) {
+            $this->fail('REQUEST_INVALID', 'Media type or role is invalid.', 422);
+        }
+        $size = strlen($body);
+        $maximum = (int)($this->config['max_media_bytes'] ?? 10 * 1024 * 1024);
+        if ($size < 1 || $size > $maximum) {
+            $this->fail('REQUEST_TOO_LARGE', 'Media body is too large.', 413);
+        }
+        if (!hash_equals($contentHash, hash('sha256', $body))) {
+            $this->fail('CONTENT_HASH_MISMATCH', 'Media body does not match its content hash.', 422);
+        }
+        if (!class_exists('finfo')) {
+            $this->fail('MEDIA_WRITE_FAILED', 'PHP fileinfo extension is unavailable.', 500);
+        }
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $dimensions = @getimagesizefromstring($body);
+        if ($finfo->buffer($body) !== 'image/jpeg' || !is_array($dimensions) || ($dimensions['mime'] ?? '') !== 'image/jpeg') {
+            $this->fail('MEDIA_INVALID', 'Media body is not a valid JPEG image.', 422);
+        }
+
+        $root = rtrim((string)($this->config['media_upload_path'] ?? ''), '/\\');
+        if ($root === '') $this->fail('MEDIA_WRITE_FAILED', 'Media upload path is not configured.', 500);
+        $relativePath = '/upload/geo/' . substr($contentHash, 0, 2) . '/' . $contentHash . '.jpg';
+        $directory = $root . DIRECTORY_SEPARATOR . 'geo' . DIRECTORY_SEPARATOR . substr($contentHash, 0, 2);
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            $this->fail('MEDIA_WRITE_FAILED', 'Media upload directory cannot be created.', 500);
+        }
+        $target = $directory . DIRECTORY_SEPARATOR . $contentHash . '.jpg';
+        $created = false;
+        if (is_file($target)) {
+            $storedHash = hash_file('sha256', $target);
+            if (filesize($target) !== $size || !is_string($storedHash) || !hash_equals($contentHash, $storedHash)) {
+                $this->fail('MEDIA_WRITE_FAILED', 'Stored media conflicts with its content hash.', 500);
+            }
+        } else {
+            $temporary = tempnam($directory, '.geo-upload-');
+            if ($temporary === false || file_put_contents($temporary, $body, LOCK_EX) !== $size) {
+                if (is_string($temporary) && is_file($temporary)) @unlink($temporary);
+                $this->fail('MEDIA_WRITE_FAILED', 'Media body cannot be persisted.', 500);
+            }
+            if (!@rename($temporary, $target)) {
+                @unlink($temporary);
+                $storedHash = is_file($target) ? hash_file('sha256', $target) : false;
+                if (!is_file($target) || filesize($target) !== $size || !is_string($storedHash) || !hash_equals($contentHash, $storedHash)) {
+                    $this->fail('MEDIA_WRITE_FAILED', 'Media body cannot be finalized.', 500);
+                }
+            } else {
+                @chmod($target, 0644);
+                $created = true;
+            }
+        }
+        $url = rtrim((string)($this->config['site_url'] ?? ''), '/') . $relativePath;
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            $this->fail('MEDIA_WRITE_FAILED', 'Public site URL is not configured.', 500);
+        }
+        return [
+            'created' => $created,
+            'response' => [
+                'asset_id' => strtolower((string)$metadata['asset_id']),
+                'content_hash' => $contentHash,
+                'content_type' => 'image/jpeg',
+                'size_bytes' => $size,
+                'url' => $url,
+            ],
+        ];
     }
 
     public function publish(array $request, string $idempotencyKey): array
@@ -89,8 +177,15 @@ class GeoNewsPublisher
             if (!filter_var($url, FILTER_VALIDATE_URL)) {
                 $this->fail('ARTICLE_WRITE_FAILED', 'Public site URL is not configured.', 500);
             }
-            $bodyHtml = self::sanitizeHtml($payload['body_html']);
-            $this->insertArticle($articleId, $nav, $payload, $bodyHtml, $publishedAt);
+            $bodyHtml = $this->sanitizeHtml($payload['body_html']);
+            $this->insertArticle(
+                $articleId,
+                $nav,
+                $payload,
+                $bodyHtml,
+                $this->firstImageUrl($bodyHtml),
+                $publishedAt
+            );
 
             $response = [
                 'external_id' => (string)$articleId,
@@ -142,7 +237,7 @@ class GeoNewsPublisher
         return $json;
     }
 
-    public static function sanitizeHtml(string $html): string
+    public function sanitizeHtml(string $html): string
     {
         if (preg_match('/<(?:script|style|iframe|object|embed)\b|\son[a-z]+\s*=|javascript\s*:/i', $html)) {
             throw new GeoPublishException('REQUEST_INVALID', 'body_html contains unsafe markup.', 422);
@@ -152,6 +247,7 @@ class GeoNewsPublisher
         $html = preg_replace_callback('/<([a-z0-9]+)([^>]*)>/i', function (array $match): string {
             $tag = strtolower($match[1]);
             if (!in_array($tag, self::ALLOWED_TAGS, true)) return '';
+            if ($tag === 'img') return $this->sanitizeImageTag($match[2]);
             if ($tag !== 'a') return '<' . $tag . '>';
             if (!preg_match('/\shref\s*=\s*(["\'])(.*?)\1/i', $match[2], $hrefMatch)) return '<a>';
             $href = html_entity_decode($hrefMatch[2], ENT_QUOTES, 'UTF-8');
@@ -230,7 +326,7 @@ class GeoNewsPublisher
         return $nav;
     }
 
-    private function insertArticle(int $id, array $nav, array $payload, string $html, int $now): void
+    private function insertArticle(int $id, array $nav, array $payload, string $html, string $coverImage, int $now): void
     {
         $statement = $this->pdo->prepare(
             'INSERT INTO ' . $this->table('cms_article') . ' ('
@@ -247,7 +343,7 @@ class GeoNewsPublisher
             $payload['title'],
             implode('，', $payload['seo_keywords']),
             $payload['meta_description'],
-            '',
+            $coverImage,
             $now,
             $now,
             null,
@@ -265,6 +361,41 @@ class GeoNewsPublisher
             0,
             'zh-cn',
         ]);
+    }
+
+    private function sanitizeImageTag(string $attributes): string
+    {
+        if (!preg_match('/\ssrc\s*=\s*(["\'])(.*?)\1/i', $attributes, $sourceMatch)) return '';
+        $source = html_entity_decode($sourceMatch[2], ENT_QUOTES, 'UTF-8');
+        if (!$this->isOwnedMediaUrl($source)) return '';
+        $alt = '';
+        if (preg_match('/\salt\s*=\s*(["\'])(.*?)\1/i', $attributes, $altMatch)) {
+            $alt = html_entity_decode($altMatch[2], ENT_QUOTES, 'UTF-8');
+        }
+        return '<img src="' . htmlspecialchars($source, ENT_QUOTES, 'UTF-8') . '" alt="'
+            . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '" loading="lazy" decoding="async">';
+    }
+
+    private function isOwnedMediaUrl(string $url): bool
+    {
+        $site = parse_url((string)($this->config['site_url'] ?? ''));
+        $candidate = parse_url($url);
+        if (!is_array($site) || !is_array($candidate)) return false;
+        $path = (string)($candidate['path'] ?? '');
+        if (!preg_match('#^/upload/geo/[a-f0-9]{2}/[a-f0-9]{64}\.jpg$#', $path)) return false;
+        return strtolower((string)($candidate['scheme'] ?? '')) === strtolower((string)($site['scheme'] ?? ''))
+            && strtolower((string)($candidate['host'] ?? '')) === strtolower((string)($site['host'] ?? ''))
+            && (int)($candidate['port'] ?? 0) === (int)($site['port'] ?? 0)
+            && !isset($candidate['user'])
+            && !isset($candidate['pass'])
+            && !isset($candidate['query'])
+            && !isset($candidate['fragment']);
+    }
+
+    private function firstImageUrl(string $html): string
+    {
+        if (!preg_match('/<img\s+src="([^"]+)"/i', $html, $match)) return '';
+        return html_entity_decode($match[1], ENT_QUOTES, 'UTF-8');
     }
 
     private function findReceipt(string $field, string $value): ?array

@@ -8,7 +8,7 @@ function assertHttp(bool $condition, string $message): void
     if (!$condition) throw new HttpTestFailure($message);
 }
 
-function request(string $url, string $method, array $headers = [], ?array $body = null): array
+function request(string $url, string $method, array $headers = [], $body = null): array
 {
     $options = [
         'http' => [
@@ -19,7 +19,9 @@ function request(string $url, string $method, array $headers = [], ?array $body 
         ],
     ];
     if ($body !== null) {
-        $options['http']['content'] = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $options['http']['content'] = is_array($body)
+            ? json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+            : (string)$body;
     }
     $result = file_get_contents($url, false, stream_context_create($options));
     $responseHeaders = $http_response_header ?? [];
@@ -57,12 +59,15 @@ $pdo->exec((string)file_get_contents(dirname(__DIR__) . '/database/migrations/00
 $pdo = null;
 
 $token = 'local-http-test-token-with-enough-entropy';
+$mediaDirectory = sys_get_temp_dir() . '/geo-publish-http-media-' . bin2hex(random_bytes(8));
+if (!mkdir($mediaDirectory, 0755, true)) throw new RuntimeException('Unable to create media directory.');
 $port = random_int(18082, 18999);
 $baseUrl = 'http://127.0.0.1:' . $port;
 $environment = array_merge($_ENV, [
     'GEO_TEST_DATABASE_PATH' => $database,
     'GEO_TEST_TOKEN_SHA256' => hash('sha256', $token),
     'GEO_TEST_SITE_URL' => $baseUrl,
+    'GEO_TEST_MEDIA_UPLOAD_PATH' => $mediaDirectory,
 ]);
 $command = [PHP_BINARY, '-S', '127.0.0.1:' . $port, '-t', dirname(__DIR__) . '/public', __DIR__ . '/GeoPublishHttpRouter.php'];
 $process = proc_open($command, [STDIN, ['file', '/dev/null', 'a'], ['file', '/dev/null', 'a']], $pipes, dirname(__DIR__), $environment);
@@ -78,13 +83,29 @@ try {
     $capabilities = request($baseUrl . '/api/geo/v1/capabilities', 'GET', $authHeaders);
     assertHttp($capabilities['status'] === 200, 'Capabilities request failed.');
     assertHttp(($capabilities['body']['publish'] ?? false) === true, 'Publish capability is unavailable.');
+    assertHttp(($capabilities['body']['media_upload'] ?? false) === true, 'Media upload capability is unavailable.');
+
+    $jpeg = file_get_contents(dirname(__DIR__) . '/public/static/home/images/icon_line.jpg');
+    if ($jpeg === false) throw new RuntimeException('Unable to load JPEG fixture.');
+    $mediaHash = hash('sha256', $jpeg);
+    $mediaHeaders = array_merge($authHeaders, [
+        'Content-Type: image/jpeg',
+        'Idempotency-Key: official-site-media:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        'X-Content-Sha256: ' . $mediaHash,
+        'X-Content-Version-Id: 33333333-3333-4333-8333-333333333333',
+        'X-Media-Asset-Id: bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        'X-Media-Role: cover',
+    ]);
+    $uploaded = request($baseUrl . '/api/geo/v1/media', 'POST', $mediaHeaders, $jpeg);
+    assertHttp($uploaded['status'] === 201, 'Media upload failed.');
+    assertHttp(($uploaded['body']['content_hash'] ?? '') === $mediaHash, 'Media hash changed.');
 
     $payload = [
         'schema_version' => 'zhiyuan-news-payload@1',
         'platform_code' => 'official_site',
         'title' => '广州企业搬迁如何规划人员车辆与物品交接流程',
         'summary' => '从需求确认、现场勘察到物品交接，说明企业搬迁的关键步骤。',
-        'body_html' => '<h2>先确认搬迁范围</h2><p>企业应先整理物品清单和时间要求。</p>',
+        'body_html' => '<figure><img src="' . $uploaded['body']['url'] . '" alt="企业搬迁示意图"></figure><h2>先确认搬迁范围</h2><p>企业应先整理物品清单和时间要求。</p>',
         'seo_keywords' => ['广州企业搬迁', '搬迁流程'],
         'meta_description' => '广州企业搬迁流程说明，涵盖需求确认、现场勘察和物品交接。',
     ];
@@ -115,10 +136,22 @@ try {
     $verification = new PDO('sqlite:' . $database, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     assertHttp((int)$verification->query('SELECT COUNT(*) FROM zw_cms_article')->fetchColumn() === 1, 'Replay created a duplicate article.');
     assertHttp((int)$verification->query('SELECT status FROM zw_cms_article')->fetchColumn() === 1, 'Article is not published.');
+    assertHttp($verification->query('SELECT image FROM zw_cms_article')->fetchColumn() === $uploaded['body']['url'], 'Uploaded cover was not stored on the article.');
 } finally {
     proc_terminate($process);
     proc_close($process);
     @unlink($database);
+    removeTree($mediaDirectory);
 }
 
 fwrite(STDOUT, "GeoPublishHttpTest passed\n");
+
+function removeTree(string $directory): void
+{
+    if (!is_dir($directory)) return;
+    foreach (array_diff(scandir($directory) ?: [], ['.', '..']) as $entry) {
+        $path = $directory . DIRECTORY_SEPARATOR . $entry;
+        if (is_dir($path)) removeTree($path); else @unlink($path);
+    }
+    @rmdir($directory);
+}

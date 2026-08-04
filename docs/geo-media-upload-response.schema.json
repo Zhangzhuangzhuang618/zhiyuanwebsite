@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.zhiyuanbj.cn/schemas/geo-media-upload-response-1.json",
+  "title": "Zhiyuan GEO media upload response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["asset_id", "content_hash", "content_type", "size_bytes", "url"],
+  "properties": {
+    "asset_id": { "type": "string", "format": "uuid" },
+    "content_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "content_type": { "const": "image/jpeg" },
+    "size_bytes": { "type": "integer", "minimum": 1, "maximum": 10000000 },
+    "url": { "type": "string", "format": "uri" }
+  }
+}

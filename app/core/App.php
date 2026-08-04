@@ -114,6 +114,7 @@ class App
             '/detail/case:id'      => 'index/cases/detail',
             '/detail_cases:id'     => 'index/cases/detail',
             '/api/geo/v1/capabilities' => 'index/geoPublishApi/capabilities',
+            '/api/geo/v1/media'        => 'index/geoPublishApi/media',
             '/api/geo/v1/publish'      => 'index/geoPublishApi/publish',
             '/api/geo/v1/status/:id'   => 'index/geoPublishApi/status',
         ];

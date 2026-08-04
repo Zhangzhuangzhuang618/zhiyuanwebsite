@@ -27,6 +27,29 @@ class GeoPublishApi extends BaseController
         }
     }
 
+    public function media(): void
+    {
+        $this->requireMethod('POST');
+        $publisher = $this->publisher();
+        $this->authenticate($publisher);
+        try {
+            $result = $publisher->uploadMedia(
+                $this->binaryBody(),
+                [
+                    'asset_id' => $this->header('X-Media-Asset-Id'),
+                    'content_hash' => $this->header('X-Content-Sha256'),
+                    'content_type' => strtolower(trim((string)($_SERVER['CONTENT_TYPE'] ?? ''))),
+                    'content_version_id' => $this->header('X-Content-Version-Id'),
+                    'role' => $this->header('X-Media-Role'),
+                ],
+                $this->header('Idempotency-Key')
+            );
+            $this->json($result['response'], $result['created'] ? 201 : 200);
+        } catch (GeoPublishException $error) {
+            $this->error($error);
+        }
+    }
+
     public function status(string $id): void
     {
         $this->requireMethod('GET');
@@ -69,6 +92,20 @@ class GeoPublishApi extends BaseController
             $this->error(new GeoPublishException('REQUEST_INVALID', 'Request body must be a JSON object.', 422));
         }
         return $decoded;
+    }
+
+    private function binaryBody(): string
+    {
+        $maximum = (int)($this->config['geo_publish_api']['max_media_bytes'] ?? 10 * 1024 * 1024);
+        $contentLength = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+        if ($contentLength < 1 || $contentLength > $maximum) {
+            $this->error(new GeoPublishException('REQUEST_TOO_LARGE', 'Media body is too large.', 413));
+        }
+        $body = file_get_contents('php://input', false, null, 0, $maximum + 1);
+        if ($body === false || strlen($body) < 1 || strlen($body) > $maximum) {
+            $this->error(new GeoPublishException('REQUEST_TOO_LARGE', 'Media body is too large.', 413));
+        }
+        return $body;
     }
 
     private function requireMethod(string $expected): void
