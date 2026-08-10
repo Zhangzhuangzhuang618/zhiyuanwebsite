@@ -81,7 +81,7 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
     <?php foreach ($structured_data as $schema): ?>
     <script type="application/ld+json"><?= json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
     <?php endforeach; ?>
-    <link rel="shortcut icon" type="image/x-icon" href="<?= htmlspecialchars($assetUrl('/upload/20250316/993a52a682b5711b1a4c03e7ce22ea03.png'), ENT_QUOTES, 'UTF-8') ?>" media="screen">
+    <link rel="icon" type="image/x-icon" href="<?= htmlspecialchars($assetUrl('/favicon.ico'), ENT_QUOTES, 'UTF-8') ?>" sizes="any">
     <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/swiper.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/animate.min.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/mediaelementplayer.css'), ENT_QUOTES, 'UTF-8') ?>">
