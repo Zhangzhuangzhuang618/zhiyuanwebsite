@@ -73,6 +73,15 @@ abstract class BaseController
         $productModel = new CmsProduct();
         $bannerModel = new CmsBanner();
         $config = $this->siteConfig;
+        $configuredCities = $this->config['city_domains'] ?? [];
+        $storedCities = json_decode($config['son_domain_list'] ?? '', true);
+        $cityList = [];
+        foreach (array_merge($configuredCities, is_array($storedCities) ? $storedCities : []) as $city) {
+            $key = trim((string)($city['en_mark'] ?? ''));
+            if ($key !== '') {
+                $cityList[$key] = $city;
+            }
+        }
 
         return [
             'site' => [
@@ -98,7 +107,7 @@ abstract class BaseController
             'phone_list' => $expandModel->getByParent(2, 'phone_list'),
             'home_features' => $expandModel->getByParent(10, 'home_features'),
             'footer_services' => $productModel->select(['status' => 1], 'id, title, link, target', 'sort ASC, id DESC', 6),
-            'city_list'  => json_decode($config['son_domain_list'] ?? '', true) ?: ($this->config['city_domains'] ?? []),
+            'city_list'  => array_values($cityList),
             'service_cities' => $this->config['service_cities'] ?? [],
             'now_city'   => __CITY__,
             'now_lang'   => __LANG__,
