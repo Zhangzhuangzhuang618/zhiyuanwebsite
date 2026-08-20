@@ -71,6 +71,7 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
     <title><?= htmlspecialchars($seoTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <meta name="keywords" content="<?= htmlspecialchars($page_keywords ?? '广州搬家,同城搬家,跨市搬家,企业搬迁,搬家服务', ENT_QUOTES, 'UTF-8') ?>">
     <meta name="description" content="<?= htmlspecialchars($seoDescription, ENT_QUOTES, 'UTF-8') ?>">
+    <meta name="telephone" content="02085627757">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="<?= htmlspecialchars($canonical_url, ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:title" content="<?= htmlspecialchars($seoTitle, ENT_QUOTES, 'UTF-8') ?>">
