@@ -133,6 +133,7 @@ class App
         $staticRoutes['/' . $adminPath . '/articleDelete'] = 'index/admin/articleDelete';
         $staticRoutes['/' . $adminPath . '/casesManage']   = 'index/admin/casesManage';
         $staticRoutes['/' . $adminPath . '/caseEdit']      = 'index/admin/caseEdit';
+        $staticRoutes['/' . $adminPath . '/caseImageUpload'] = 'index/admin/caseImageUpload';
         $staticRoutes['/' . $adminPath . '/caseSave']      = 'index/admin/caseSave';
         $staticRoutes['/' . $adminPath . '/caseDelete']    = 'index/admin/caseDelete';
         $staticRoutes['/' . $adminPath . '/settings']      = 'index/admin/settings';

@@ -163,6 +163,27 @@ class Admin extends BaseController
         $this->setFlash('上传完成，图片地址：' . $path); $this->redirectTo($returnTo);
     }
 
+    public function caseImageUpload()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!$this->isLoggedIn()) $this->uploadFailure('登录已过期，请重新登录。', '', true, 401);
+        if (!$this->isPost()) $this->uploadFailure('仅支持 POST 请求。', '', true, 405);
+        if (!hash_equals((string)($_SESSION['zhiyuan_csrf'] ?? ''), (string)($_POST['_csrf'] ?? ''))) {
+            $this->uploadFailure('页面验证已过期，请刷新后重试。', '', true, 403);
+        }
+        $path = $this->storeImageUpload('image', '', true);
+        if (!$path) $this->uploadFailure('请选择图片。', '', true);
+        echo json_encode(['url' => $path], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function uploadFailure($message, $returnTo, $json, $status = 422)
+    {
+        if (!$json) $this->fail($message, $returnTo);
+        http_response_code($status);
+        echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     private function contentList($kind)
     {
         $this->requireLogin();
@@ -196,11 +217,19 @@ class Admin extends BaseController
         $save = $kind === 'article' ? '/articleSave' : '/caseSave';
         $back = $kind === 'article' ? '/articles' : '/casesManage';
         $image = (string)($item['image'] ?? '');
+        ob_start();
+        if ($kind === 'case') {
+            $uploadUrl = $this->url('/caseImageUpload');
+            include VIEW_PATH . 'admin/case_editor.php';
+        } else {
+            echo '<label>正文（可填写 HTML）<textarea name="content" rows="16">' . $this->e($item['content'] ?? '') . '</textarea></label>';
+        }
+        $contentEditor = ob_get_clean();
         $body = '<div class="title-row"><h1>' . ($id ? '编辑' : '新增') . $label . '</h1><a class="button secondary" href="' . $this->url($back) . '">返回列表</a></div>'
             . '<form method="post" enctype="multipart/form-data" action="' . $this->url($save) . '" class="panel edit-form">' . $this->csrfInput() . '<input type="hidden" name="id" value="' . $id . '">'
             . '<label>标题<input name="title" required value="' . $this->e($item['title'] ?? '') . '"></label><label>所属栏目<select name="nav_id">' . $options . '</select></label><label>摘要<textarea name="sketch" rows="3">' . $this->e($item['sketch'] ?? '') . '</textarea></label><label>封面图片地址<input name="image" value="' . $this->e($image) . '" placeholder="/upload/日期/文件名.jpg"></label><label>上传封面图片<input type="file" name="cover_image" accept="image/jpeg,image/png,image/gif,image/webp"><small>选择图片后保存，系统会自动上传并关联到当前' . $label . '；留空则保留上方图片地址。</small></label>'
             . ($image ? '<p><img class="preview" src="' . $this->e($image) . '" alt="当前封面"></p>' : '')
-            . '<label>正文（可填写 HTML）<textarea name="content" rows="16">' . $this->e($item['content'] ?? '') . '</textarea></label><div class="two-cols"><label>SEO 标题<input name="seo_title" value="' . $this->e($item['seo_title'] ?? '') . '"></label><label>SEO 关键词<input name="seo_keyword" value="' . $this->e($item['seo_keyword'] ?? '') . '"></label></div><label>SEO 描述<textarea name="seo_content" rows="3">' . $this->e($item['seo_content'] ?? '') . '</textarea></label><div class="two-cols"><label>排序<input type="number" name="sort" value="' . (int)($item['sort'] ?? 0) . '"></label><label>发布状态<select name="status"><option value="1"' . ((int)($item['status'] ?? 1) === 1 ? ' selected' : '') . '>发布</option><option value="0"' . ((int)($item['status'] ?? 1) === 0 ? ' selected' : '') . '>草稿</option></select></label></div><div class="form-actions"><button class="primary">保存' . $label . '</button></div></form>';
+            . $contentEditor . '<div class="two-cols"><label>SEO 标题<input name="seo_title" value="' . $this->e($item['seo_title'] ?? '') . '"></label><label>SEO 关键词<input name="seo_keyword" value="' . $this->e($item['seo_keyword'] ?? '') . '"></label></div><label>SEO 描述<textarea name="seo_content" rows="3">' . $this->e($item['seo_content'] ?? '') . '</textarea></label><div class="two-cols"><label>排序<input type="number" name="sort" value="' . (int)($item['sort'] ?? 0) . '"></label><label>发布状态<select name="status"><option value="1"' . ((int)($item['status'] ?? 1) === 1 ? ' selected' : '') . '>发布</option><option value="0"' . ((int)($item['status'] ?? 1) === 0 ? ' selected' : '') . '>草稿</option></select></label></div><div class="form-actions"><button class="primary">保存' . $label . '</button></div></form>';
         $this->page($label . '编辑', $body);
     }
 
@@ -267,21 +296,21 @@ class Admin extends BaseController
         return '*,*:before,*:after{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#263238;font:14px/1.55 "Microsoft YaHei",Arial,sans-serif}body:not(.login){display:flex}aside{position:fixed;width:220px;min-height:100vh;background:#18232f;padding:18px 12px;color:#d9e1e8}aside a{display:block;color:#d9e1e8;text-decoration:none;padding:10px 12px;border-radius:6px;margin:3px 0}aside a:hover{background:#25394d}.brand{font-size:17px;font-weight:700;color:#fff!important;margin-bottom:16px!important}main{width:calc(100% - 220px);margin-left:220px;max-width:1500px;padding:32px}h1{margin:0 0 22px;font-size:26px}h2{font-size:17px;margin:0}.title-row,.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.panel{background:#fff;border:1px solid #e4e8ed;border-radius:10px;padding:20px;box-shadow:0 1px 3px #18232f0d}.panel-head{margin-bottom:14px}.stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:14px;margin-bottom:20px}.stat{background:#fff;border-radius:10px;border:1px solid #e4e8ed;padding:18px}.stat strong{font-size:28px;color:#e5382d;display:block}.stat span,.muted,small{color:#73808c}table{width:100%;border-collapse:collapse;background:#fff}th,td{padding:10px;border:1px solid #e4e8ed;text-align:left;vertical-align:top}th{background:#eef4f8;color:#36556e}.pre{white-space:pre-wrap;max-width:420px}.thumb{width:72px;height:52px;object-fit:cover;border-radius:4px}.preview{max-width:240px;max-height:160px;border:1px solid #e4e8ed}.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:12px}.done{background:#e6f6ed;color:#16803b}.pending{background:#fff4dd;color:#a56300}.button,button{display:inline-block;border:0;border-radius:5px;padding:8px 12px;cursor:pointer;font:inherit;text-decoration:none;margin:2px}.primary{background:#e5382d;color:#fff}.secondary{background:#edf2f5;color:#335}.danger{background:#fff0f0;color:#c9362b}.inline{display:inline}.edit-form label{display:block;margin-bottom:14px;font-weight:600}.edit-form label>span{display:block;margin-bottom:5px}.edit-form label small{display:block;font-weight:400}.edit-form input,.edit-form textarea,.edit-form select,.login-card input{display:block;width:100%;margin-top:5px;padding:9px;border:1px solid #cfd8df;border-radius:5px;font:inherit}.edit-form textarea{resize:vertical}.two-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.form-actions{margin-top:20px;border-top:1px solid #e4e8ed;padding-top:16px}.upload{margin-top:18px}.notice{padding:10px 12px;border-radius:6px;margin-bottom:16px}.success{background:#e9f8ef;color:#19713b}.error{background:#fff0f0;color:#b52b24}.logout{background:transparent;color:#b9c7d3;padding:10px 12px}.login{display:grid;min-height:100vh;place-items:center;background:linear-gradient(135deg,#172431,#2d5a7a)}.login-card{width:min(400px,calc(100% - 32px));padding:32px;background:#fff;border-radius:12px;box-shadow:0 16px 42px #0004}.login-card h1{margin-bottom:2px}.login-card p{margin:0 0 20px;color:#73808c}.login-card label{display:block;margin:14px 0;font-weight:600}.login-card button{width:100%;margin:8px 0 0}@media(max-width:800px){aside{position:static;width:100%;min-height:0}body:not(.login){display:block}main{width:100%;margin:0;padding:16px}.stats{grid-template-columns:1fr 1fr}.two-cols{grid-template-columns:1fr}.panel{overflow:auto}table{min-width:680px}}';
     }
 
-    private function storeImageUpload($field, $returnTo)
+    private function storeImageUpload($field, $returnTo, $json = false)
     {
         if (empty($_FILES[$field]) || $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) return null;
-        if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK) $this->fail('图片上传失败。', $returnTo);
+        if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK) $this->uploadFailure('图片上传失败。', $returnTo, $json);
         $file = $_FILES[$field];
         $maxSize = (int)($this->config['upload']['max_size'] ?? 10485760);
-        if ($file['size'] > $maxSize) $this->fail('图片超过允许大小。', $returnTo);
+        if ($file['size'] > $maxSize) $this->uploadFailure('图片超过允许大小。', $returnTo, $json);
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $file['tmp_name']); finfo_close($finfo);
         $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
-        if (!isset($extensions[$mime])) $this->fail('仅支持 JPG、PNG、GIF、WEBP 图片。', $returnTo);
+        if (!isset($extensions[$mime])) $this->uploadFailure('仅支持 JPG、PNG、GIF、WEBP 图片。', $returnTo, $json);
         $day = date('Ymd'); $directory = rtrim(UPLOAD_PATH, '/\\') . DIRECTORY_SEPARATOR . $day;
-        if (!is_dir($directory) && !mkdir($directory, 0755, true)) $this->fail('上传目录无法创建。', $returnTo);
+        if (!is_dir($directory) && !mkdir($directory, 0755, true)) $this->uploadFailure('上传目录无法创建。', $returnTo, $json);
         $name = bin2hex(random_bytes(16)) . '.' . $extensions[$mime];
-        if (!move_uploaded_file($file['tmp_name'], $directory . DIRECTORY_SEPARATOR . $name)) $this->fail('图片保存失败。', $returnTo);
+        if (!move_uploaded_file($file['tmp_name'], $directory . DIRECTORY_SEPARATOR . $name)) $this->uploadFailure('图片保存失败。', $returnTo, $json);
         return '/upload/' . $day . '/' . $name;
     }
 
