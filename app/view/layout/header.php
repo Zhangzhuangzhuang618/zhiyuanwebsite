@@ -31,6 +31,7 @@ $headerMenu = [
         ['title' => '同城搬家', 'href' => $navHref(2)], ['title' => '跨市搬家', 'href' => $navHref(3)], ['title' => '出国搬家', 'href' => $navHref(4)],
         ['title' => '日式搬家', 'href' => $productHref(15)], ['title' => '收纳整理', 'href' => $productHref(18)], ['title' => '家居拆装', 'href' => $productHref(19)],
     ]],
+    ['key' => 'japanese', 'title' => '日式搬家', 'href' => $productHref(15)],
     ['key' => 'business', 'title' => '企业搬迁', 'href' => $productHref(2), 'children' => [
         ['title' => '办公室搬迁', 'href' => $productHref(2)], ['title' => '院校搬迁', 'href' => $productHref(3)],
         ['title' => '实验室搬迁', 'href' => $productHref(6)], ['title' => '图书馆搬迁', 'href' => $productHref(7)], ['title' => '工厂搬迁', 'href' => $productHref(8)],
@@ -40,6 +41,8 @@ $headerMenu = [
         ['title' => '钢琴搬运', 'href' => $productHref(16)], ['title' => '设备搬迁', 'href' => $productHref(4)], ['title' => '艺术品搬运', 'href' => $productHref(20)],
     ]],
     ['key' => 'about', 'title' => '关于志远', 'href' => $navHref(5)],
+    ['key' => 'pricing', 'title' => '报价说明', 'href' => '/pricing.html'],
+    ['key' => 'faq', 'title' => '常见问题', 'href' => '/faq.html'],
     ['key' => 'cases', 'title' => '服务案例', 'href' => $navHref(6)],
     ['key' => 'news', 'title' => '新闻资讯', 'href' => $navHref(7)],
     ['key' => 'contact', 'title' => '联系志远', 'href' => $navHref(8)],
@@ -53,6 +56,11 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
 } elseif (preg_match('#^/detail/products(\d+)\.html$#', $headerPath, $productMatch)) {
     $productKeyMap = [2 => 'business', 3 => 'business', 5 => 'business', 6 => 'business', 7 => 'business', 8 => 'business', 10 => 'business', 11 => 'business', 17 => 'business', 4 => 'valuables', 16 => 'valuables', 20 => 'valuables', 15 => 'personal', 18 => 'personal', 19 => 'personal'];
     $activeHeaderKey = $productKeyMap[(int) $productMatch[1]] ?? 'personal';
+    if ((int)$productMatch[1] === 15) $activeHeaderKey = 'japanese';
+} elseif ($headerPath === '/pricing.html') {
+    $activeHeaderKey = 'pricing';
+} elseif ($headerPath === '/faq.html') {
+    $activeHeaderKey = 'faq';
 } elseif (str_starts_with($headerPath, '/about')) {
     $activeHeaderKey = 'about';
 } elseif (str_starts_with($headerPath, '/cases')) {
@@ -71,7 +79,7 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
     <title><?= htmlspecialchars($seoTitle, ENT_QUOTES, 'UTF-8') ?></title>
     <meta name="keywords" content="<?= htmlspecialchars($page_keywords ?? '广州搬家,同城搬家,跨市搬家,企业搬迁,搬家服务', ENT_QUOTES, 'UTF-8') ?>">
     <meta name="description" content="<?= htmlspecialchars($seoDescription, ENT_QUOTES, 'UTF-8') ?>">
-    <meta name="telephone" content="02085627757">
+    <meta name="telephone" content="<?= htmlspecialchars(preg_replace('/\D+/', '', (string)$site['phone']), ENT_QUOTES, 'UTF-8') ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="<?= htmlspecialchars($canonical_url, ENT_QUOTES, 'UTF-8') ?>">
     <meta property="og:title" content="<?= htmlspecialchars($seoTitle, ENT_QUOTES, 'UTF-8') ?>">
@@ -91,6 +99,7 @@ if (preg_match('#^/products/(2|3|4)\.html$#', $headerPath)) {
     <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/header.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/footer.css'), ENT_QUOTES, 'UTF-8') ?>">
     <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/media.css'), ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/brand-visuals.css'), ENT_QUOTES, 'UTF-8') ?>">
     <script src="<?= htmlspecialchars($assetUrl('/static/home/js/jquery.min.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 </head>
 <body>

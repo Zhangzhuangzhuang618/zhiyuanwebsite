@@ -27,6 +27,10 @@ abstract class BaseController
         if ($this->siteConfig !== null) return;
         $configModel = new SystemConfig();
         $this->siteConfig = $configModel->getAllConfig();
+        // 兼容尚未更新地址的线上配置与缓存；后台后续填写其他地址仍正常生效。
+        if (empty($this->siteConfig['web_address']) || $this->siteConfig['web_address'] === '广州市天河区棠东东路御富科贸园') {
+            $this->siteConfig['web_address'] = '广州市白云区均禾街平沙南街10号三楼307-2';
+        }
     }
 
     /**
@@ -179,12 +183,13 @@ abstract class BaseController
             '@id' => $this->siteUrl('/#organization'),
             'name' => $name,
             'alternateName' => '志远搬家',
+            'description' => '广州志远搬家服务有限公司提供居民搬家、日式搬家与企业搬迁。公司统一接单、报价和调度，长期固定合作班组作业，订单不转交其他搬家公司独立承接。客户与志远签约，服务及售后由志远统一负责，按合同承担相应责任。',
             'url' => $this->siteUrl('/'),
             'logo' => $this->absoluteUrl($this->siteConfig['web_logo'] ?? '/upload/20250316/343c6ff6bcb0d1dd7a9a4989741d35ea.png'),
             'telephone' => '+86-' . ($this->siteConfig['web_call'] ?? '020-85627757'),
             'address' => [
                 '@type' => 'PostalAddress',
-                'streetAddress' => $this->siteConfig['web_address'] ?? '广州市天河区棠东东路御富科贸园',
+                'streetAddress' => $this->siteConfig['web_address'] ?? '广州市白云区均禾街平沙南街10号三楼307-2',
                 'addressLocality' => '广州',
                 'addressRegion' => '广东省',
                 'addressCountry' => 'CN',

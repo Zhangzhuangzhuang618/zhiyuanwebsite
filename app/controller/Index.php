@@ -12,6 +12,15 @@ use app\model\CmsExpand;
  */
 class Index extends BaseController
 {
+    public function pricing()
+    {
+        $this->initConfig();
+        $this->render('index/pricing', [
+            'page_title' => '报价说明与常见加价避坑｜居民搬家、吊装、工厂搬迁｜志远搬家',
+            'page_description' => '志远搬家公开居民搬家380元、469元、569元套餐及日式搬家收费，说明楼层费、超里程费、免费上门勘测条件与合同锁价承诺；高层吊装、工厂搬迁勘测后分项报价。',
+            'canonical_url' => $this->siteUrl('/pricing.html'),
+        ]);
+    }
     /**
      * 首页
      */
@@ -74,9 +83,9 @@ class Index extends BaseController
             'reasons'    => $reasons,
             'about'      => $about,
             'why'        => $why,
-            'page_title' => $this->siteConfig['seo_title'] ?? '广州志远搬家服务有限公司',
+            'page_title' => '广州志远搬家｜日式搬家、居民搬家与企业搬迁｜公司直派',
             'page_keywords' => $this->siteConfig['seo_keyword'] ?? '',
-            'page_description' => $this->siteConfig['seo_content'] ?? '',
+            'page_description' => '广州志远搬家提供居民搬家380/469/569元车型套餐、半日式280元/立方米与精品日式320元/立方米服务。公司直派长期固定合作班组，客户与志远签约，约定范围内不临时加价，售后由志远统一负责。',
             'canonical_url' => $this->siteUrl('/'),
             'structured_data' => [[
                 '@context' => 'https://schema.org',
@@ -123,6 +132,14 @@ class Index extends BaseController
         // 企业文化、员工风采、媒体报道的数据存放在扩展内容表，不能使用通用富文本页渲染。
         $expandModel = new CmsExpand();
         switch ((int) ($page['id'] ?? 0)) {
+            case 13:
+                $viewData['page_title'] = '公司介绍与服务保障 - 广州志远搬家服务有限公司';
+                $viewData['page_description'] = '了解广州志远搬家服务有限公司的居民、日式及企业搬迁服务。公司统一报价派工，长期固定合作班组作业，客户与志远签约，订单不转交其他搬家公司独立承接，售后由志远按合同负责。';
+                $viewData['canonical_url'] = $this->siteUrl('/about/13.html');
+                break;
+            case 19:
+                $this->pricing();
+                return;
             case 14:
                 $view = 'index/culture';
                 $viewData['cultureProfile'] = $expandModel->find(23) ?: [];

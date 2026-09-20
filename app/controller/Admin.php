@@ -178,7 +178,16 @@ class Admin extends BaseController
 
     private function uploadFailure($message, $returnTo, $json, $status = 422)
     {
-        if (!$json) $this->fail($message, $returnTo);
+        error_log('Admin image upload failed: ' . $message);
+        if (!$json) {
+            if (isset($_POST['content']) && in_array($returnTo, ['/casesManage', '/articles'], true)) {
+                $kind = $returnTo === '/casesManage' ? 'case' : 'article';
+                $draft = array_intersect_key($_POST, array_flip(['id', 'title', 'nav_id', 'sketch', 'image', 'content', 'seo_title', 'seo_keyword', 'seo_content', 'sort', 'status']));
+                $_SESSION['admin_content_draft'][$kind] = $draft;
+                $this->fail($message . ' 本次尚未保存，已保留填写内容，请重新选择封面后保存。', '/' . $kind . 'Edit?id=' . (int)($_POST['id'] ?? 0));
+            }
+            $this->fail($message, $returnTo);
+        }
         http_response_code($status);
         echo json_encode(['error' => $message], JSON_UNESCAPED_UNICODE);
         exit;
@@ -211,6 +220,11 @@ class Admin extends BaseController
         $id = (int)($_GET['id'] ?? 0);
         $item = $id ? $this->find($table, $id) : [];
         if ($id && !$item) { $this->setFlash('内容不存在。'); $this->redirectTo($kind === 'article' ? '/articles' : '/casesManage'); }
+        $draft = $_SESSION['admin_content_draft'][$kind] ?? null;
+        if ($draft && (int)($draft['id'] ?? 0) === $id) {
+            $item = array_merge($item ?: [], $draft);
+            unset($_SESSION['admin_content_draft'][$kind]);
+        }
         $navs = $this->pdo->query('SELECT id, title FROM ' . $this->table('cms_nav') . ' ORDER BY sort ASC, id ASC')->fetchAll();
         $options = '<option value="0">未分类</option>';
         foreach ($navs as $nav) $options .= '<option value="' . (int)$nav['id'] . '"' . ((int)($item['nav_id'] ?? 0) === (int)$nav['id'] ? ' selected' : '') . '>' . $this->e($nav['title']) . '（' . (int)$nav['id'] . '）</option>';
@@ -299,7 +313,13 @@ class Admin extends BaseController
     private function storeImageUpload($field, $returnTo, $json = false)
     {
         if (empty($_FILES[$field]) || $_FILES[$field]['error'] === UPLOAD_ERR_NO_FILE) return null;
-        if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK) $this->uploadFailure('图片上传失败。', $returnTo, $json);
+        if ($_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+            $code = (int)$_FILES[$field]['error'];
+            $message = in_array($code, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)
+                ? '图片超过服务器单张上传限制（' . ini_get('upload_max_filesize') . '）。'
+                : ($code === UPLOAD_ERR_PARTIAL ? '图片上传不完整，请重试。' : '图片上传失败（错误码 ' . $code . '）。');
+            $this->uploadFailure($message, $returnTo, $json);
+        }
         $file = $_FILES[$field];
         $maxSize = (int)($this->config['upload']['max_size'] ?? 10485760);
         if ($file['size'] > $maxSize) $this->uploadFailure('图片超过允许大小。', $returnTo, $json);

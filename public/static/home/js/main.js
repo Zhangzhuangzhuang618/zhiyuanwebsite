@@ -33,7 +33,11 @@ $(function() {
 	
 // 
     
-    $(".lazy").lazyload({placeholder:'https://www.zhiranbj.com/_templets_/default/images/bgTm.png',threshold: 100, effect : "fadeIn",failure_limit : 20,skip_invisible : false})
+    // Set real local URLs immediately; native lazy loading avoids an external placeholder dependency.
+    document.querySelectorAll('img.lazy[data-original]').forEach(function (image) {
+        image.loading = 'lazy';
+        image.src = image.getAttribute('data-original');
+    });
 	
      
      

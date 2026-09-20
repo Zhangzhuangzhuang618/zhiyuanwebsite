@@ -1,23 +1,5 @@
 </main>
-<!-- 数据统计模块 -->
-<div>
-    <div class="number" style="background-image: url(/upload/20250115/311220780e4cadb5939576640896fa23.png);">
-        <div class="center">
-            <div class="left wow fadeInLeft" data-wow-delay="0.1s">
-                <img class="lazy" data-original="/upload/20260601/8b197a2e3bc602e1b72c263b6ff60a1e.png" alt="志远搬家服务数据">
-            </div>
-            <div class="right wow fadeInRight" data-wow-delay="0.1s">
-                <ul id="number-list">
-                    <li><p><span class="count-up">20</span>年</p><p><i></i>服务经验</p></li>
-                    <li><p><span class="count-up">500</span>万</p><p><i></i>服务客户群体</p></li>
-                    <li><p><span class="count-up">2000</span>位</p><p><i></i>专业搬家技师</p></li>
-                    <li><p><span class="count-up">100</span>位</p><p><i></i>专属客服服务</p></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
+<section class="center boxsh zy-service-visual"><div class="visual-copy"><h2 class="fs-24">志远搬家 · 搬迁、吊装、打包收纳</h2><p>公司统一报价派工，长期固定合作班组执行，客户与广州志远搬家服务有限公司签约，售后按合同负责。</p><p><a href="/pricing.html">报价说明</a>　<a href="/faq.html">常见问题</a>　<a href="/about/13.html#dispatch-assurance">公司直派与签约保障</a></p></div></section>
 <!-- 页脚 -->
 <footer>
     <div class="n-footer wow fadeInUp">
@@ -103,7 +85,7 @@
         <div class="container">
             <div class="box1">
                 <div class="left-box">
-                    <h1><span>搬家服务</span>价格估算</h1>
+                    <h2 class="quote-popup-title"><span>搬家服务</span>价格估算</h2>
                     <p>选择服务类型与预估体积，立即查看参考报价</p>
                     <div class="inside-box quote-calculator">
                         <div class="quote-layout">

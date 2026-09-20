@@ -52,7 +52,21 @@ class Products extends BaseController
         $navModel = new CmsNav();
         $currentNav = $navModel->find($detail['nav_id'] ?? 0) ?: [];
 
-        $this->render('products/detail', array_merge($this->getProductTemplateData($detail['nav_id'] ?? 0), [
+        if ($id === 15) {
+            $detail['seo_title'] = '广州日式搬家｜打包、搬运与新家还原｜志远搬家';
+            $detail['seo_content'] = '广州志远搬家提供半日式280元/立方米、5立方米起，精品日式320元/立方米、10立方米起。含旧家打包、包装材料、小家具拆装及装卸运输，精品增加新家还原；公司直派固定合作班组，志远签约负责。';
+            $detail['seo_keyword'] = '广州日式搬家,志远搬家,半日式搬家,打包收纳,新家还原';
+        }
+        $description = trim(strip_tags(html_entity_decode($detail['seo_content'] ?: ($detail['sketch'] ?? ''), ENT_QUOTES, 'UTF-8')));
+        $serviceSchema = [
+            '@context' => 'https://schema.org', '@type' => 'Service',
+            'name' => $detail['title'], 'serviceType' => $detail['title'],
+            'url' => $this->siteUrl('/detail/products' . $id . '.html'),
+            'provider' => ['@id' => $this->siteUrl('/#organization')],
+        ];
+        if ($description !== '') $serviceSchema['description'] = $description;
+        $this->render($id === 15 ? 'products/japanese' : 'products/detail', array_merge($this->getProductTemplateData($detail['nav_id'] ?? 0), [
+            'structured_data' => [$serviceSchema],
             'detail'     => $detail,
             'banner'     => ($currentNav['image'] ?? '') ?: '/upload/20240510/bacfd59f43877ced86eca6d241385b84.jpg',
             'p_active'   => 1,

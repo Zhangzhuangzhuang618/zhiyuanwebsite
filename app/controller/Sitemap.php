@@ -13,6 +13,7 @@ class Sitemap extends BaseController
         $urls = [
             ['loc' => $this->siteUrl('/'), 'lastmod' => date('c')],
             ['loc' => $this->siteUrl('/faq.html')],
+            ['loc' => $this->siteUrl('/pricing.html')],
         ];
 
         foreach ((new CmsNav())->select(['status' => 1], 'id, url_model', 'sort ASC, id ASC') as $nav) {

@@ -2,38 +2,27 @@
 
 <link rel="stylesheet" href="<?= htmlspecialchars($assetUrl('/static/home/css/index.css'), ENT_QUOTES, 'UTF-8') ?>">
 
-<!-- Banner -->
-<section aria-label="首页横幅">
-    <div class="swiper-container banner">
-        <div class="swiper-wrapper">
-            <?php if (!empty($banners)): ?>
-                <?php foreach ($banners as $banner): ?>
-                <div class="swiper-slide">
-                    <img src="<?= htmlspecialchars($assetUrl($banner['image']), ENT_QUOTES, 'UTF-8') ?>" class="w100 block" alt="广州志远搬家服务横幅">
-                </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="swiper-slide">
-                    <img src="/upload/20260601/5687dee1d2a3aa94c741847c9d0f887e.jpg" class="w100 block" alt="广州志远搬家服务横幅">
-                </div>
-                <div class="swiper-slide">
-                    <img src="/upload/20250216/091bcd172c24c0bf1d66320fcc2b3c80.jpg" class="w100 block" alt="广州志远搬家服务横幅">
-                </div>
-            <?php endif; ?>
-        </div>
-        <div class="swiper-pagination"></div>
-        <div class="banner-btn banner-left"></div>
-        <div class="banner-btn banner-next"></div>
-    </div>
-</section>
+<!-- 服务说明使用可抓取文字，不沿用旧横幅中的客户量数字。 -->
+<section class="zy-hero" aria-label="志远搬家服务介绍"><div class="center">
+<p class="brand">广州志远搬家服务有限公司</p><p class="headline">志远搬家<br>打包、搬运与新家还原</p>
+<p>居民搬家 · 日式搬家 · 企业搬迁 · 起重吊装</p><p>公司直派固定合作班组，作业前确认服务项目与费用</p>
+<a href="/pricing.html">查看报价说明</a><a href="/detail/products15.html">了解日式搬家</a>
+</div></section>
 
 <section class="center clearfix mt20" aria-labelledby="home-answer-title">
     <div class="boxsh pd20">
-        <h1 id="home-answer-title" class="fs-24 mb10">广州搬家服务：同城、跨市与企业搬迁</h1>
-        <p class="c666 line-h-2">志远搬家提供广州同城搬家、跨市搬家、企业搬迁、家具拆装等搬运服务。服务方案和费用会结合地址、楼层、电梯、物品及现场条件确认，预约前可先说明主要需求获取清晰安排。</p>
+        <h1 id="home-answer-title" class="fs-24 mb10">广州志远搬家：日式搬家、居民搬家与企业搬迁</h1>
+        <p class="c666 line-h-2">志远搬家提供广州日式搬家、同城搬家、跨市搬家、企业搬迁和家具拆装服务。半日式负责旧家打包收纳和装卸运输，精品日式增加新家还原与指定位置摆放。服务方案和费用会结合地址、楼层、电梯、物品及现场条件确认，预约前可先说明主要需求获取清晰安排。</p>
     </div>
 </section>
 
+<?php include VIEW_PATH . 'layout/direct_service.php'; ?>
+<section class="center boxsh pd20 mt20" style="line-height:1.9" aria-label="搬家费用与服务指南">
+<h2 class="fs-24">志远搬家收费与服务指南</h2>
+<p>居民搬家：大型面包车380元、小型厢式货车469元、大型厢式货车569元，包含装车、运输、卸车。前两档包含10公里，569元档包含50公里，超出部分7元/公里。</p>
+<p>半日式280元/立方米、5立方米起；精品日式320元/立方米、10立方米起。两种套餐均含包装材料及小家具拆装，精品日式增加新家还原。</p>
+<p><a href="/pricing.html">查看收费明细与锁价承诺</a>　<a href="/detail/products15.html">了解日式搬家</a>　<a href="/faq.html">预约与售后常见问题</a>　<a href="/cases/6.html">查看志远服务案例</a></p>
+</section>
 <!-- 多元化的业务范围 -->
 <section class="center clearfix" aria-labelledby="service-scope-title">
     <div class="wow fadeInUp" data-wow-delay="0.1s">
@@ -46,7 +35,7 @@
                     <?php foreach ($services as $service): ?>
                     <div class="slide-box">
                         <div class="img-box">
-                            <img class="lazy" data-original="<?= $service['image'] ?>" alt="<?= htmlspecialchars($service['title'], ENT_QUOTES, 'UTF-8') ?>服务" width="100%">
+                            <img src="<?= htmlspecialchars($assetUrl($service['image']), ENT_QUOTES, 'UTF-8') ?>" loading="lazy" alt="<?= htmlspecialchars($service['title'], ENT_QUOTES, 'UTF-8') ?>服务" width="100%">
                         </div>
                         <p class="title14"><?= $service['title'] ?></p>
                         <p class="infos wline2"><?= $service['sketch'] ?></p>
@@ -66,7 +55,7 @@
 <section class="center clearfix" aria-labelledby="about-title">
     <div class="wow fadeInUp" data-wow-delay="0.1s">
         <div class="title-top clearfix mt30">
-            <h2 id="about-title">关于志远 <span>About ZhongRen</span></h2>
+            <h2 id="about-title">关于志远 <span>About Zhiyuan</span></h2>
             <p class="more"><a href="/about.html">查看更多<span>›</span></a></p>
         </div>
         <div class="about clearfix mt20 boxsh">
@@ -183,7 +172,7 @@
                         <li>
                             <div class="img-box">
                                 <div class="img">
-                                    <img class="lazy" data-original="<?= $case['image'] ?>" alt="<?= htmlspecialchars($case['title'], ENT_QUOTES, 'UTF-8') ?>服务案例" width="278" height="192">
+                                    <img src="<?= htmlspecialchars($assetUrl($case['image']), ENT_QUOTES, 'UTF-8') ?>" loading="lazy" alt="<?= htmlspecialchars($case['title'], ENT_QUOTES, 'UTF-8') ?>服务案例" width="278" height="192">
                                 </div>
                             </div>
                             <div class="text-box">

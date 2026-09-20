@@ -104,6 +104,7 @@ class App
             '/languageGo'          => 'index/index/changeLanguage',
             '/search/:model'       => 'index/search/index',
             '/search'              => 'index/search/index',
+            '/pricing'             => 'index/index/pricing',
             '/faq'                 => 'index/faq/index',
             '/sitemap.xml'         => 'index/sitemap/index',
             '/PageSearch'          => 'index/search/productSearch',

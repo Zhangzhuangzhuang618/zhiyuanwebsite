@@ -6,7 +6,8 @@
         var form = root.closest('form');
         var panel = root.querySelector('.case-image-panel');
         var fileInput = root.querySelector('.case-image-file');
-        var captionInput = root.querySelector('.case-image-caption');
+        var imageList = root.querySelector('.case-image-list');
+        var pendingImages = [];
         var status = root.querySelector('.case-editor-status');
         var doc, range, mode = 'visual', uploading = false, changed = false;
         var escape = function (s) {
@@ -16,10 +17,33 @@
             status.textContent = text;
             status.classList.toggle('error', !!error);
         }
-        function remember() {
+        function captureRange() {
             var selection = doc.getSelection();
             if (selection.rangeCount && doc.body.contains(selection.anchorNode)) range = selection.getRangeAt(0).cloneRange();
         }
+        function remember() {
+            if (!uploading) captureRange();
+        }
+        function renderImages() {
+            imageList.replaceChildren();
+            pendingImages.forEach(function (item) {
+                var label = document.createElement('label');
+                label.textContent = item.file.name + ' — 图片说明';
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'case-image-caption';
+                input.placeholder = '可选，插入后也可在图下修改';
+                input.value = item.caption;
+                input.addEventListener('input', function () { item.caption = input.value; });
+                label.appendChild(input);
+                imageList.appendChild(label);
+            });
+        }
+        fileInput.addEventListener('change', function () {
+            pendingImages = Array.from(fileInput.files).map(function (file) { return {file: file, caption: ''}; });
+            renderImages();
+            message(pendingImages.length ? '已选择 ' + pendingImages.length + ' 张图片，尚未插入正文。请点击“上传并插入”。' : '');
+        });
         function restore() {
             frame.contentWindow.focus();
             if (!range || !doc.body.contains(range.startContainer)) {
@@ -102,37 +126,59 @@
             } else if (action === 'source') switchMode(mode === 'source' ? 'visual' : 'source');
             else if (action === 'preview') switchMode(mode === 'preview' ? 'visual' : 'preview');
             else if (action === 'image') { remember(); panel.hidden = false; fileInput.focus(); }
-            else if (action === 'cancel-image') panel.hidden = true;
+            else if (action === 'cancel-image') { pendingImages = []; fileInput.value = ''; renderImages(); panel.hidden = true; message('已取消待插入图片。'); }
             else if (action === 'upload') {
-                var file = fileInput.files[0];
-                if (!file) { message('请先选择图片。', true); return; }
-                var data = new FormData();
-                data.append('image', file);
-                data.append('_csrf', form.querySelector('[name="_csrf"]').value);
+                if (!pendingImages.length) { message('请先选择图片。', true); return; }
                 uploading = true;
                 button.disabled = true;
+                panel.querySelectorAll('input, button').forEach(function (control) { control.disabled = true; });
                 doc.body.contentEditable = 'false';
                 updateControls();
-                message('图片上传中，请稍候…');
+                var total = pendingImages.length, inserted = 0;
                 try {
-                    var response = await fetch(root.dataset.uploadUrl, {method:'POST', body:data, credentials:'same-origin'});
-                    var result = await response.json();
-                    if (!response.ok || !result.url) throw new Error(result.error || '图片上传失败，请重试。');
-                    if (!/^\/upload\/[a-zA-Z0-9/_.-]+$/.test(result.url)) throw new Error('图片地址无效。');
-                    var caption = captionInput.value.trim();
-                    doc.body.contentEditable = 'true';
-                    restore();
-                    doc.execCommand('insertHTML', false, '<figure><img src="' + escape(result.url) + '" alt="' + escape(caption) + '">'
-                        + '<figcaption>' + (escape(caption) || '在此填写图片说明') + '</figcaption></figure><p><br></p>');
-                    changed = true; sync(); remember();
-                    fileInput.value = ''; captionInput.value = ''; panel.hidden = true;
-                    message('图片已插入。请保存案例，图片位置和说明才会生效。');
-                } catch (error) { message(error.message || '上传失败，请检查网络后重试。正文仍保留。', true); }
-                finally { uploading = false; button.disabled = false; doc.body.contentEditable = 'true'; updateControls(); }
+                    while (pendingImages.length) {
+                        var item = pendingImages[0];
+                        message('正在上传第 ' + (inserted + 1) + '/' + total + ' 张图片…');
+                        var data = new FormData();
+                        data.append('image', item.file);
+                        data.append('_csrf', form.querySelector('[name="_csrf"]').value);
+                        var response = await fetch(root.dataset.uploadUrl, {method:'POST', body:data, credentials:'same-origin'});
+                        var result = await response.json();
+                        if (!response.ok || !result.url) throw new Error(result.error || '图片上传失败，请重试。');
+                        if (!/^\/upload\/[a-zA-Z0-9/_.-]+$/.test(result.url)) throw new Error('图片地址无效。');
+                        var caption = item.caption.trim();
+                        doc.body.contentEditable = 'true';
+                        restore();
+                        var html = '<figure><img src="' + escape(result.url) + '" alt="' + escape(caption) + '">'
+                            + '<figcaption>' + (escape(caption) || '在此填写图片说明') + '</figcaption></figure><p><br></p>';
+                        if (!doc.execCommand('insertHTML', false, html)) throw new Error('插入失败，请重新选择正文位置后重试。');
+                        changed = true; sync(); captureRange();
+                        doc.body.contentEditable = 'false';
+                        pendingImages.shift();
+                        inserted++;
+                    }
+                    fileInput.value = ''; panel.hidden = true;
+                    message('已插入 ' + inserted + ' 张图片。可在其他段落继续插图；请保存案例。');
+                } catch (error) {
+                    message('本次已插入 ' + inserted + ' 张，剩余 ' + pendingImages.length + ' 张未插入。' + (error.message || '请检查网络后重试。'), true);
+                } finally {
+                    renderImages();
+                    uploading = false;
+                    panel.querySelectorAll('input, button').forEach(function (control) { control.disabled = false; });
+                    doc.body.contentEditable = 'true'; updateControls();
+                }
             }
         });
         form.addEventListener('submit', function (event) {
             if (uploading) { event.preventDefault(); message('图片仍在上传，请完成后保存。', true); return; }
+            if (pendingImages.length) {
+                event.preventDefault();
+                panel.hidden = false;
+                message('还有 ' + pendingImages.length + ' 张图片尚未插入正文。请点击“上传并插入”，或取消选图后再保存。', true);
+                panel.scrollIntoView({block: 'center'});
+                root.querySelector('[data-action="upload"]').focus();
+                return;
+            }
             if (doc) sync();
         });
     });

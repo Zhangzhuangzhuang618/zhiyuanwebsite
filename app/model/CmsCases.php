@@ -8,30 +8,30 @@ class CmsCases extends BaseModel
     public function getListByNav(int $navId, int $page = 1, int $pageSize = 12): array
     {
         return $this->paginate(
-            ['nav_id' => $navId, 'status' => 1],
+            $navId === 0 ? ['status' => 1] : ['nav_id' => $navId, 'status' => 1],
             $page, $pageSize,
-            'id, title, sketch, image, link, target, nav_id, create_time, seo_title, seo_keyword, seo_content',
-            'sort ASC, create_time DESC'
+            'id, title, sketch, content, image, link, target, nav_id, create_time, update_time, seo_title, seo_keyword, seo_content',
+            'sort ASC, create_time DESC, id DESC'
         );
     }
 
     public function getLatest(int $limit = 8, int $navId = 0): array
     {
         if ($navId === 0) {
-            return $this->select(
-                ['nav_id' => 10, 'status' => 1],
+            return array_map([\app\service\CasePresentation::class, 'prepare'], $this->select(
+                ['status' => 1],
                 'id, title, image, sketch, link, target, create_time',
                 'sort ASC, id ASC',
                 $limit
-            );
+            ));
         }
 
-        return $this->select(
+        return array_map([\app\service\CasePresentation::class, 'prepare'], $this->select(
             ['nav_id' => $navId, 'status' => 1, 'state' => 1],
             'id, title, image, sketch, link, target, create_time',
             'sort ASC, id ASC',
             $limit
-        );
+        ));
     }
 
     public function getPrevNext(int $id, int $navId): array
@@ -43,6 +43,7 @@ class CmsCases extends BaseModel
             $stmt = $this->connection->prepare($sql);
             $stmt->execute([$navId, $id]);
             $result[$key] = $stmt->fetch();
+            if ($result[$key]) $result[$key] = \app\service\CasePresentation::prepare($result[$key]);
         }
         return $result;
     }
@@ -53,6 +54,6 @@ class CmsCases extends BaseModel
             . ' WHERE nav_id = ? AND id != ? AND status = 1 ORDER BY sort ASC, id ASC LIMIT ?';
         $stmt = $this->connection->prepare($sql);
         $stmt->execute([$navId, $excludeId, $limit]);
-        return $stmt->fetchAll();
+        return array_map([\app\service\CasePresentation::class, 'prepare'], $stmt->fetchAll());
     }
 }

@@ -91,7 +91,7 @@
         border-radius: 4px;
         width: 44%;
     }
-    .left-box h1 {
+    .left-box .quote-popup-title {
         font-size: 20px;
     }
     #Popup .container-ks{position: static;}
